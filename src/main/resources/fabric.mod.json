@@ -1,0 +1,29 @@
+{
+    "schemaVersion": 1,
+    "id": "ai-villagers",
+    "version": "${version}",
+    "name": "AI Villagers",
+    "description": "A proof-of-concept mod integrating large language models into Minecraft",
+    "authors": [
+        "Igrium"
+    ],
+    "license": "MIT",
+    "icon": "assets/ai-villagers/icon.png",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "com.igrium.aivillagers.AIVillagers"
+        ]
+    },
+    "mixins": [
+        "ai-villagers.mixins.json"
+    ],
+    "depends": {
+        "fabricloader": ">=0.16.9",
+        "minecraft": "~1.21.4",
+        "java": ">=21",
+        "fabric-api": "*"
+    },
+    "suggests": {
+    }
+}
