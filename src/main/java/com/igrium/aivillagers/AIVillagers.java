@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.igrium.aivillagers.subsystems.impl.ChatListeningSubsystem;
+import com.igrium.openai.OpenAI;
 
 public class AIVillagers implements ModInitializer {
     public static final String MOD_ID = "ai-villagers";
@@ -38,6 +39,6 @@ public class AIVillagers implements ModInitializer {
 
         ServerTickEvents.END_SERVER_TICK.register(aiManager::tick);
         
-
+        LOGGER.info(OpenAI.getTestMessage());
     }
 }
