@@ -9,4 +9,4 @@ pluginManagement {
 	}
 }
 
-include('openai-api')
+include('playht-api')
