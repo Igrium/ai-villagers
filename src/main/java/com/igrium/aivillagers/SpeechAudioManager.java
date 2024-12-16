@@ -20,7 +20,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.maxhenkel.voicechat.api.VoicechatApi;
+import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import de.maxhenkel.voicechat.api.audiochannel.AudioChannel;
 import de.maxhenkel.voicechat.api.audiochannel.AudioPlayer;
 import de.maxhenkel.voicechat.api.audiochannel.LocationalAudioChannel;
@@ -51,8 +51,8 @@ public class SpeechAudioManager implements Closeable {
         return plugin;
     }
 
-    public VoicechatApi getApi() {
-        return plugin.getApi();
+    public VoicechatServerApi getApi() {
+        return plugin.getServerApi();
     }
     
     private ExecutorService audioProcessingService = new ThreadPoolExecutor(3, 10, 30, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
@@ -95,8 +95,8 @@ public class SpeechAudioManager implements Closeable {
             // EntityAudioChannel channel = getPlugin().getServerApi().createEntityAudioChannel(UUID.randomUUID(),
             //         getPlugin().getServerApi().fromEntity(entity));
 
-            LocationalAudioChannel channel = getPlugin().getServerApi().createLocationalAudioChannel(UUID.randomUUID(),
-                    getPlugin().getServerApi().fromServerLevel(entity.getWorld()),
+            LocationalAudioChannel channel = getApi().createLocationalAudioChannel(UUID.randomUUID(),
+                    getApi().fromServerLevel(entity.getWorld()),
                     getApi().createPosition(entity.getX(), entity.getY(), entity.getZ()));
 
             if (channel == null) {
@@ -134,7 +134,7 @@ public class SpeechAudioManager implements Closeable {
 
         StreamingAudioPlayer(AudioChannel channel, AudioInputStream audio) {
             this.audio = AudioSystem.getAudioInputStream(FORMAT, audio);
-            this.audioPlayer = getPlugin().getServerApi().createAudioPlayer(channel, getApi().createEncoder(), this::getFrame);
+            this.audioPlayer = getApi().createAudioPlayer(channel, getApi().createEncoder(), this::getFrame);
         }
 
         synchronized short[] getFrame() {
