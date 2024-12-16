@@ -1,15 +1,12 @@
 package com.igrium.aivillagers.subsystems.impl;
 
-import java.io.BufferedOutputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.InputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.igrium.aivillagers.AIManager;
+import com.igrium.aivillagers.SpeechAudioManager;
 import com.igrium.aivillagers.subsystems.SpeechSubsystem;
 import com.igrium.aivillagers.subsystems.SubsystemType;
 import com.igrium.playht.PlayHT;
@@ -51,27 +48,31 @@ public class PlayHTSpeechSubsystem implements SpeechSubsystem {
     public void speak(Entity entity, String message) {
         LOGGER.info("Making a call to PlayHT: {}", message);
 
-        Path outPath = Paths.get("audio.ogg");
+        SpeechAudioManager audioManager = SpeechAudioManager.getInstance();
+        if (audioManager == null) {
+            LOGGER.warn("Simple VC was not setup properly; audio will not play.");
+            return;
+        }
 
         new SpeechStreamRequest()
                 .text(message)
-                .outputFormat(OutputFormat.OGG)
+                .outputFormat(OutputFormat.WAV)
                 .voice(voice)
                 .voiceEngine(VoiceEngine.PLAYHT2)
                 .send(playHT).handle((in, e) -> {
-                    if (e != null) {
-                        LOGGER.error("Error getting text-to-speech", e);
-                        return null;
-                    }
-                    LOGGER.info("Recieving data from PlayHT");
-                    try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(outPath))) {
-                        in.transferTo(out);
-                    } catch (Exception ex) {
-                        LOGGER.error("Error writing to file", ex);
-                    }
-                    LOGGER.info("Wrote to " + outPath.toAbsolutePath());
+                    handleStreamRequest(entity, audioManager, in, e);
                     return null;
                 });
     }
     
+
+    private void handleStreamRequest(Entity entity, SpeechAudioManager audioManager, InputStream in, Throwable e) {
+        if (e != null) {
+            LOGGER.error("Error getting text-to-speech", e);
+            return;
+        }
+        LOGGER.info("Recieving data from PlayHT");
+        
+        audioManager.playAudioFromEntity(entity, in);
+    }
 }

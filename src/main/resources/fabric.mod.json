@@ -13,6 +13,9 @@
     "entrypoints": {
         "main": [
             "com.igrium.aivillagers.AIVillagers"
+        ],
+        "voicechat": [
+            "com.igrium.aivillagers.SpeechVCPlugin"
         ]
     },
     "mixins": [
