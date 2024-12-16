@@ -3,11 +3,14 @@ package com.igrium.aivillagers;
 import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.VoicechatPlugin;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
+import de.maxhenkel.voicechat.api.VolumeCategory;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
 import de.maxhenkel.voicechat.api.events.VoicechatServerStartedEvent;
 import de.maxhenkel.voicechat.api.events.VoicechatServerStoppedEvent;
 
 public class SpeechVCPlugin implements VoicechatPlugin {
+
+    public static final String VILLAGER_CATEGORY = "villager";
 
     private static SpeechVCPlugin instance;
 
@@ -40,6 +43,12 @@ public class SpeechVCPlugin implements VoicechatPlugin {
     private void onServerStarted(VoicechatServerStartedEvent event) {
         serverApi = event.getVoicechat();
         audioManager = new SpeechAudioManager(this);
+
+        VolumeCategory villager = serverApi.volumeCategoryBuilder()
+                .setId(VILLAGER_CATEGORY)
+                .setName("Villagers")
+                .setDescription("Villager text-to-speech")
+                .build();
     }
 
     private void onServerStopped(VoicechatServerStoppedEvent event) {

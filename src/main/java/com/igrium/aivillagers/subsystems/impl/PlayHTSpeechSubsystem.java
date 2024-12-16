@@ -1,6 +1,9 @@
 package com.igrium.aivillagers.subsystems.impl;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,15 +57,20 @@ public class PlayHTSpeechSubsystem implements SpeechSubsystem {
             return;
         }
 
-        new SpeechStreamRequest()
-                .text(message)
-                .outputFormat(OutputFormat.WAV)
-                .voice(voice)
-                .voiceEngine(VoiceEngine.PLAYHT2)
-                .send(playHT).handle((in, e) -> {
-                    handleStreamRequest(entity, audioManager, in, e);
-                    return null;
-                });
+        try {
+            handleStreamRequest(entity, audioManager, Files.newInputStream(Paths.get("villager.wav")), null);
+        } catch (IOException e) {
+            LOGGER.error("Error loading villager.wav", e);
+        }
+        // new SpeechStreamRequest()
+        //         .text(message)
+        //         .outputFormat(OutputFormat.WAV)
+        //         .voice(voice)
+        //         .voiceEngine(VoiceEngine.PLAYHT2)
+        //         .send(playHT).handle((in, e) -> {
+        //             handleStreamRequest(entity, audioManager, in, e);
+        //             return null;
+        //         });
     }
     
 

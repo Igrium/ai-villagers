@@ -81,14 +81,22 @@ public class SpeechAudioManager implements Closeable {
     public AudioPlayer playAudioFromEntity(Entity entity, InputStream audio) {
         try {
             EntityAudioChannel channel = getPlugin().getServerApi().createEntityAudioChannel(UUID.randomUUID(),
-            getPlugin().getServerApi().fromEntity(entity));
-    
+                    getPlugin().getServerApi().fromEntity(entity));
+
             if (channel == null) {
                 LOGGER.warn("Unable to create audio channel for {}", entity.getNameForScoreboard());
                 return null;
             }
+      
+            channel.setCategory(SpeechVCPlugin.VILLAGER_CATEGORY);
+            channel.setDistance(100);
 
             AudioPlayer player = createAudioPlayer(channel, audio);
+            long time = System.currentTimeMillis();
+            player.setOnStopped(() -> {
+                LOGGER.info("Audio finished playing in {}ms", System.currentTimeMillis() - time);
+            });
+
             player.startPlaying();
             return player;
         } catch (Exception e) {
@@ -146,7 +154,7 @@ public class SpeechAudioManager implements Closeable {
 
             byte[] buffer = new byte[FRAME_SIZE * 2]; // Frame size is in shorts.
             
-            while(converted.read(buffer) > 0) {
+            while(converted.read(buffer) > -1) {
                 short[] frame = getApi().getAudioConverter().bytesToShorts(buffer);
                 frames.add(frame); // Should cause getFrame to be able to return this frame.
                 Arrays.fill(buffer, (byte) 0);
