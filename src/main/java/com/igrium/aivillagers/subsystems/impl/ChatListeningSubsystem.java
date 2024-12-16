@@ -8,6 +8,7 @@ import java.util.WeakHashMap;
 
 import com.igrium.aivillagers.AIManager;
 import com.igrium.aivillagers.subsystems.ListeningSubsystem;
+import com.igrium.aivillagers.subsystems.SubsystemType;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.network.message.MessageType.Parameters;
@@ -20,6 +21,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
  */
 public class ChatListeningSubsystem implements ListeningSubsystem {
 
+    public static final SubsystemType<ChatListeningSubsystem> TYPE = SubsystemType.create(ChatListeningSubsystem::new);
+    
     private static record CachedMessage(String message, ServerPlayerEntity sender) {};
 
     /**

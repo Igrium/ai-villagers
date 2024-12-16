@@ -5,6 +5,7 @@ import java.util.WeakHashMap;
 import com.igrium.aivillagers.subsystems.AISubsystem;
 import com.igrium.aivillagers.subsystems.ListeningSubsystem;
 import com.igrium.aivillagers.subsystems.SpeechSubsystem;
+import com.igrium.aivillagers.subsystems.SubsystemTypes;
 import com.igrium.aivillagers.subsystems.impl.ChatListeningSubsystem;
 import com.igrium.aivillagers.subsystems.impl.ChatSpeechSubsystem;
 import com.igrium.aivillagers.subsystems.impl.DummyAISubsystem;
@@ -18,7 +19,7 @@ public class AIManager {
 
     private ListeningSubsystem listeningSubsystem = new ChatListeningSubsystem(this);
     private AISubsystem aiSubsystem = new DummyAISubsystem();
-    private SpeechSubsystem speechSubsystem = new ChatSpeechSubsystem(this);
+    private SpeechSubsystem speechSubsystem = new ChatSpeechSubsystem(this, new ChatSpeechSubsystem.Config());
 
     public ListeningSubsystem getListeningSubsystem() {
         return listeningSubsystem;
@@ -30,6 +31,12 @@ public class AIManager {
 
     public SpeechSubsystem getSpeechSubsystem() {
         return speechSubsystem;
+    }
+
+    public AIManager(AIVillagersConfig config) {
+        listeningSubsystem = SubsystemTypes.getListening(this, config.listening);
+        aiSubsystem = SubsystemTypes.getAI(this, config.ai);
+        speechSubsystem = SubsystemTypes.getSpeech(this, config.speech);
     }
 
     public void tick(MinecraftServer server) {
