@@ -5,9 +5,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -25,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.audiochannel.AudioChannel;
 import de.maxhenkel.voicechat.api.audiochannel.AudioPlayer;
-import de.maxhenkel.voicechat.api.audiochannel.EntityAudioChannel;
+import de.maxhenkel.voicechat.api.audiochannel.LocationalAudioChannel;
 import net.minecraft.entity.Entity;
 
 /**
@@ -40,8 +38,6 @@ public class SpeechAudioManager implements Closeable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SpeechAudioManager.class);
     private static final int FRAME_SIZE = 960;
-
-    private static final short[] EMPTY_FRAME = new short[FRAME_SIZE];
 
     private static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000F, 16, 1, 2, 48000F, false);
 
@@ -66,22 +62,42 @@ public class SpeechAudioManager implements Closeable {
     }
 
     /**
-     * Create an audio player that will stream the wav data from an input stream.
+     * Create an audio player that will stream PCM wav data from an input stream.
+     * 
      * @param channel Audio channel to play to.
-     * @param audio Audio data to play.
+     * @param audio   Audio data.
      * @return The audio player.
-     * @implNote The stream will automatically be closed when the audio has finished loading.
+     * @throws UnsupportedAudioFileException If the audio format isn't supported.
+     * @throws IOException                   If an IO exception occurs trying to
+     *                                       parse the audio format.
+     * @implNote The input stream will automatically close once the audio is done.
      */
-    public AudioPlayer createAudioPlayer(AudioChannel channel, InputStream audio) {
-        WavStreamingAudioPlayer player = new WavStreamingAudioPlayer();
-        audioProcessingService.execute(() -> player.convertSafe(audio)); // Begin conversion on audio processing thread.
-        return player.getOrCreateAudioPlayer(channel);
+    public AudioPlayer streamAudio(AudioChannel channel, InputStream audio)
+            throws UnsupportedAudioFileException, IOException {
+        AudioInputStream audioStream = AudioSystem.getAudioInputStream(new BufferedInputStream(audio));
+        return streamAudio(channel, audioStream);
+    }
+
+    /**
+     * Create an audio player that will stream audio from an input stream.
+     * 
+     * @param channel Audio channel to play to.
+     * @param audio   Audio data.
+     * @return The audio player.
+     * @implNote The input stream will automatically close once the audio is done.
+     */
+    public AudioPlayer streamAudio(AudioChannel channel, AudioInputStream audio) {
+        return new StreamingAudioPlayer(channel, audio).audioPlayer;
     }
 
     public AudioPlayer playAudioFromEntity(Entity entity, InputStream audio) {
         try {
-            EntityAudioChannel channel = getPlugin().getServerApi().createEntityAudioChannel(UUID.randomUUID(),
-                    getPlugin().getServerApi().fromEntity(entity));
+            // EntityAudioChannel channel = getPlugin().getServerApi().createEntityAudioChannel(UUID.randomUUID(),
+            //         getPlugin().getServerApi().fromEntity(entity));
+
+            LocationalAudioChannel channel = getPlugin().getServerApi().createLocationalAudioChannel(UUID.randomUUID(),
+                    getPlugin().getServerApi().fromServerLevel(entity.getWorld()),
+                    getApi().createPosition(entity.getX(), entity.getY(), entity.getZ()));
 
             if (channel == null) {
                 LOGGER.warn("Unable to create audio channel for {}", entity.getNameForScoreboard());
@@ -91,7 +107,7 @@ public class SpeechAudioManager implements Closeable {
             channel.setCategory(SpeechVCPlugin.VILLAGER_CATEGORY);
             channel.setDistance(100);
 
-            AudioPlayer player = createAudioPlayer(channel, audio);
+            AudioPlayer player = streamAudio(channel, audio);
             long time = System.currentTimeMillis();
             player.setOnStopped(() -> {
                 LOGGER.info("Audio finished playing in {}ms", System.currentTimeMillis() - time);
@@ -111,65 +127,32 @@ public class SpeechAudioManager implements Closeable {
         audioProcessingService.shutdown();
     }
     
-    /**
-     * Takes care of streaming as wav file into an audio player.
-     */
-    private class WavStreamingAudioPlayer {
+    private class StreamingAudioPlayer {
         AudioPlayer audioPlayer;
+        byte[] readBuffer = new byte[FRAME_SIZE * 2]; // Frame size is in shorts
+        AudioInputStream audio;
 
-        Queue<short[]> frames = new ConcurrentLinkedDeque<>();
-        volatile boolean isDone;
-
-        public AudioPlayer getOrCreateAudioPlayer(AudioChannel channel) {
-            if (audioPlayer == null) {
-                audioPlayer = getPlugin().getServerApi().createAudioPlayer(channel, getApi().createEncoder(), this::getFrame);
-            }
-            return audioPlayer;
+        StreamingAudioPlayer(AudioChannel channel, AudioInputStream audio) {
+            this.audio = AudioSystem.getAudioInputStream(FORMAT, audio);
+            this.audioPlayer = getPlugin().getServerApi().createAudioPlayer(channel, getApi().createEncoder(), this::getFrame);
         }
 
-        public short[] getFrame() {
-            // When frames in queue run out, see if the input stream is still running.
-            // Check this before so we know the input stream didn't finish after the frame was pulled.
-            boolean isDone = this.isDone;
-            short[] frame = frames.poll();
-            if (frame == null) {
-                return isDone ? null : EMPTY_FRAME;
-            }
-            return frame;
-        }
-
-        /**
-         * Convert the audio file into an array of shorts that can be read by
-         * getFrame().
-         * Will block until audio conversion is complete. Should be called on Audio
-         * manager thread.
-         * 
-         * @param in Input stream of audio file.
-         * @throws UnsupportedAudioFileException If the file's format is unsupported.
-         * @throws IOException                   If an IO exception occurs.
-         */
-        public void convert(InputStream in) throws UnsupportedAudioFileException, IOException {
-            AudioInputStream source = AudioSystem.getAudioInputStream(new BufferedInputStream(in));
-            AudioInputStream converted = AudioSystem.getAudioInputStream(FORMAT, source);
-
-            byte[] buffer = new byte[FRAME_SIZE * 2]; // Frame size is in shorts.
-            
-            while(converted.read(buffer) > -1) {
-                short[] frame = getApi().getAudioConverter().bytesToShorts(buffer);
-                frames.add(frame); // Should cause getFrame to be able to return this frame.
-                Arrays.fill(buffer, (byte) 0);
-            }
-            in.close();
-            isDone = true;
-        }
-
-        public void convertSafe(InputStream in) {
+        synchronized short[] getFrame() {
             try {
-                convert(in);
+                // TODO: can we find a more efficient way to clear this if array wasn't filled?
+                Arrays.fill(readBuffer, (byte) 0);
+                int read = audio.read(readBuffer);
+
+                if (read < 0) {
+                    audio.close();
+                    return null;
+                }
+                return getApi().getAudioConverter().bytesToShorts(readBuffer);
             } catch (Exception e) {
-                LOGGER.error("An error occured decoding TTS audio: ", e);
-                isDone = true;
+                LOGGER.info("Error reading audio stream:", e);
+                return null;
             }
         }
     }
+
 }

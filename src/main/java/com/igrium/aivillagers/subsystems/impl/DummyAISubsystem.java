@@ -32,6 +32,7 @@ public class DummyAISubsystem implements AISubsystem {
     
     @Override
     public void onDamage(Entity villager, DamageSource source, float amount) {
-        aiManager.getSpeechSubsystem().speak(villager, "Ouch. I took " + amount / 2f + " hearts.");
+        aiManager.getSpeechSubsystem().speak(villager, "Ouch. I took " + amount / 2f
+                + " hearts. You're so mean.");
     }
 }
