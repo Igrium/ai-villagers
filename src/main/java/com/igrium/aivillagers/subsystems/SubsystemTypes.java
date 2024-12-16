@@ -7,6 +7,7 @@ import com.igrium.aivillagers.AIManager;
 import com.igrium.aivillagers.subsystems.impl.ChatListeningSubsystem;
 import com.igrium.aivillagers.subsystems.impl.ChatSpeechSubsystem;
 import com.igrium.aivillagers.subsystems.impl.DummyAISubsystem;
+import com.igrium.aivillagers.subsystems.impl.PlayHTSpeechSubsystem;
 
 public class SubsystemTypes {
     public static final BiMap<String, SubsystemType<? extends ListeningSubsystem>> LISTENING_REGISTRY = HashBiMap.create();
@@ -41,5 +42,6 @@ public class SubsystemTypes {
         AI_REGISTRY.put("dummy", DummyAISubsystem.TYPE);
 
         SPEECH_REGISTRY.put("chat", ChatSpeechSubsystem.TYPE);
+        SPEECH_REGISTRY.put("playht", PlayHTSpeechSubsystem.TYPE);
     }
 }

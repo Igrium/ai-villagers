@@ -11,11 +11,8 @@ base {
 }
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
+	maven { url = 'https://maven.maxhenkel.de/repository/public' }
+	maven { url = 'https://api.modrinth.com/maven' }
 }
 
 dependencies {
@@ -26,7 +23,8 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	
+	modImplementation "de.maxhenkel.voicechat:voicechat-api:2.3.3"
+	modRuntimeOnly "maven.modrinth:simple-voice-chat:fabric-1.21.4-2.5.26"
 
 	implementation include(project(':playht-api'))
 }
