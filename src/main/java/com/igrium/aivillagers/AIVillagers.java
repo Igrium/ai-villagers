@@ -59,7 +59,7 @@ public class AIVillagers implements ModInitializer {
         ServerLivingEntityEvents.AFTER_DAMAGE.register((LivingEntity entity, DamageSource source, float baseDamageTaken,
                 float damageTaken, boolean blocked) -> {
             if (entity instanceof VillagerEntity && damageTaken > 0 && !blocked) {
-                aiManager.getAIHandle(entity).onDamage(source, damageTaken);
+                aiManager.getAiSubsystem().onDamage(entity, source, damageTaken);
             }
         });
 

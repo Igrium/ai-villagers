@@ -1,7 +1,6 @@
 package com.igrium.aivillagers.subsystems;
 
-import com.igrium.aivillagers.VillagerAIHandle;
-
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -14,7 +13,7 @@ public interface AISubsystem extends Subsystem {
      * @param player   The player that spoke.
      * @param message  What was said
      */
-    public void onSpokenTo(VillagerAIHandle villager, ServerPlayerEntity player, String message);
+    public void onSpokenTo(Entity villager, ServerPlayerEntity player, String message);
 
     /**
      * Called when a villager has taken damage.
@@ -23,5 +22,5 @@ public interface AISubsystem extends Subsystem {
      * @param source   The damage source.
      * @param amount   The amount of damage.
      */
-    public void onDamage(VillagerAIHandle villager, DamageSource source, float amount);
+    public void onDamage(Entity villager, DamageSource source, float amount);
 }

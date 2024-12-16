@@ -26,6 +26,7 @@ public class ChatSpeechSubsystem implements SpeechSubsystem {
     public ChatSpeechSubsystem(AIManager aiManager, Config config) {
         this.aiManager = aiManager;
     }
+    
 
     public AIManager getAiManager() {
         return aiManager;
@@ -43,5 +44,4 @@ public class ChatSpeechSubsystem implements SpeechSubsystem {
             }
         }
     }
-    
 }

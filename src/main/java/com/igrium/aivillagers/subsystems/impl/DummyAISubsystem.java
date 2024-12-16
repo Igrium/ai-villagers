@@ -1,9 +1,10 @@
 package com.igrium.aivillagers.subsystems.impl;
 
-import com.igrium.aivillagers.VillagerAIHandle;
+import com.igrium.aivillagers.AIManager;
 import com.igrium.aivillagers.subsystems.AISubsystem;
 import com.igrium.aivillagers.subsystems.SubsystemType;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -12,15 +13,25 @@ import net.minecraft.server.network.ServerPlayerEntity;
  */
 public class DummyAISubsystem implements AISubsystem {
 
-    public static final SubsystemType<DummyAISubsystem> TYPE = SubsystemType.create(ai -> new DummyAISubsystem());
+    public static final SubsystemType<DummyAISubsystem> TYPE = SubsystemType.create(DummyAISubsystem::new);
+
+    private final AIManager aiManager;
+
+    public DummyAISubsystem(AIManager aiManager) {
+        this.aiManager = aiManager;
+    }
+
+    public AIManager getAiManager() {
+        return aiManager;
+    }
 
     @Override
-    public void onSpokenTo(VillagerAIHandle villager, ServerPlayerEntity player, String message) {
-        villager.speak(message);
+    public void onSpokenTo(Entity villager, ServerPlayerEntity player, String message) {
+        aiManager.getSpeechSubsystem().speak(villager, message);
     }
     
     @Override
-    public void onDamage(VillagerAIHandle villager, DamageSource source, float amount) {
-        villager.speak("Ouch. I took " + amount / 2f + " hearts.");
+    public void onDamage(Entity villager, DamageSource source, float amount) {
+        aiManager.getSpeechSubsystem().speak(villager, "Ouch. I took " + amount / 2f + " hearts.");
     }
 }
