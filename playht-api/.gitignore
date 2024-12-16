@@ -1,4 +1,4 @@
 # No data leaking!
 config.json
 
-audio.mp3
+audio.*

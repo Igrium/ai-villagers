@@ -14,5 +14,5 @@ repositories {
 }
 
 application {
-    mainClass = "com.igrium.openai.OpenAITestApp"
+    mainClass = "com.igrium.test.PlayHTTestApp"
 }

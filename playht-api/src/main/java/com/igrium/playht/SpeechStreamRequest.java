@@ -28,6 +28,19 @@ public final class SpeechStreamRequest {
         FLAC
     }
 
+    public static enum Quality {
+        @SerializedName("draft")
+        DRAFT,
+        @SerializedName("low")
+        LOW,
+        @SerializedName("medium")
+        MEDIUM,
+        @SerializedName("high")
+        HIGH,
+        @SerializedName("premium")
+        PREMIUM
+    }
+
     public static enum VoiceEngine {
         PLAY3_MINI("Play3.0-mini"),
         PLAY_DIALOG("PlayDialog"),
@@ -55,6 +68,14 @@ public final class SpeechStreamRequest {
 
     public SpeechStreamRequest voice(String voice) {
         this.voice = voice;
+        return this;
+    }
+
+    @SerializedName("quality")
+    private Quality quality = null;
+
+    public SpeechStreamRequest quality(Quality quality) {
+        this.quality = quality;
         return this;
     }
 

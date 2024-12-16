@@ -1,4 +1,4 @@
-package com.igrium.openai;
+package com.igrium.test;
 
 import java.io.BufferedOutputStream;
 import java.io.OutputStream;
@@ -13,9 +13,8 @@ import com.igrium.playht.PlayHT;
 import com.igrium.playht.SpeechStreamRequest;
 import com.igrium.playht.SpeechStreamRequest.OutputFormat;
 import com.igrium.playht.SpeechStreamRequest.VoiceEngine;
-import com.igrium.test.TestConfig;
 
-public class OpenAITestApp {
+public class PlayHTTestApp {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("Test App");
     public static void main(String[] args) {
@@ -23,11 +22,12 @@ public class OpenAITestApp {
 
         PlayHT playHT = new PlayHT(config.apiUser, config.apiKey);
 
-        Path outPath = Paths.get("audio.mp3");
+        Path outPath = Paths.get("audio.ogg");
         
+        LOGGER.info("Making call to PlayHT");
         new SpeechStreamRequest()
                 .text("This is a test for Text-to-speech!")
-                .outputFormat(OutputFormat.MP3)
+                .outputFormat(OutputFormat.OGG)
                 .voice("s3://voice-cloning-zero-shot/9d10e3be-833b-4868-8a6a-67d91233344d/original/manifest.json")
                 .voiceEngine(VoiceEngine.PLAYHT2)
                 .send(playHT).handle((in, e) -> {
@@ -45,6 +45,5 @@ public class OpenAITestApp {
                     return null;
                 }).join();
 
-        LOGGER.info("Making call to PlayHT");
     }
 }
