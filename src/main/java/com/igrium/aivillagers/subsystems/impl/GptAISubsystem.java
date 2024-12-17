@@ -25,6 +25,7 @@ import io.github.sashirestela.openai.domain.chat.ChatMessage.UserMessage;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Util;
 
 public class GptAISubsystem implements AISubsystem {
 
@@ -63,7 +64,10 @@ public class GptAISubsystem implements AISubsystem {
 
     @Override
     public void onSpokenTo(Entity villager, ServerPlayerEntity player, String message) {
-        chatLock.lock();
+        Util.getMainWorkerExecutor().execute(() -> onSpokenToInternal(villager, player, message));
+    }
+
+    protected void onSpokenToInternal(Entity villager, ServerPlayerEntity player, String message) {
         List<ChatMessage> messageHistory = ChatHistoryComponent.get(villager).getMessageHistory();
         if (messageHistory.isEmpty()) {
             messageHistory.add(SystemMessage.of("You are a Minecraft villager."));
@@ -73,20 +77,39 @@ public class GptAISubsystem implements AISubsystem {
         ChatRequest request = ChatRequest.builder()
                 .model(config.model)
                 .messages(messageHistory)
-                .stream(true)
+                // .stream(true)
                 .maxCompletionTokens(config.maxCompletionTokens)
                 .build();
 
-        openAI.chatCompletions().createStream(request)
-                .thenAccept(res -> handleGptResponse(villager, player, res))
+        // openAI.chatCompletions().createStream(request)
+        //         .thenAccept(res -> handleStreamResponse(villager, player, res))
+        //         .exceptionally(e -> {
+                    // LOGGER.error("Error accessing OpenAI", e);
+                    // aiManager.getSpeechSubsystem().speak(villager, "Error accessing OpenAI!");
+                    // return null;
+        //         }).whenComplete((r, e) ->  chatLock.unlock());
+
+        openAI.chatCompletions().create(request)
+                .thenAccept(chat -> handleResponse(villager, player, chat))
                 .exceptionally(e -> {
                     LOGGER.error("Error accessing OpenAI", e);
                     aiManager.getSpeechSubsystem().speak(villager, "Error accessing OpenAI!");
                     return null;
-                }).whenComplete((r, e) ->  chatLock.unlock());
+                });
     }
 
-    protected void handleGptResponse(Entity villager, ServerPlayerEntity player, Stream<Chat> stream) {
+    protected void handleResponse(Entity villager, ServerPlayerEntity player, Chat chat) {
+        var choices = chat.getChoices();
+        if (choices == null || choices.isEmpty())
+            return;
+        
+        String message = choices.get(0).getMessage().getContent();
+        if (message != null && !message.isBlank())
+            aiManager.getSpeechSubsystem().speak(villager, message);
+        ChatHistoryComponent.get(villager).getMessageHistory().add(choices.get(0).getMessage());
+    }
+
+    protected void handleStreamResponse(Entity villager, ServerPlayerEntity player, Stream<Chat> stream) {
         // StringBuffer builder = new StringBuffer();
         // try (SpeechStream speech = aiManager.getSpeechSubsystem().openSpeechStream(villager)) {
         //     stream.filter(resp -> resp.getChoices().size() > 0 && resp.firstContent() != null)
