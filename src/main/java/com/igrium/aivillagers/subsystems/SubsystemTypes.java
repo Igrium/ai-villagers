@@ -7,6 +7,7 @@ import com.igrium.aivillagers.AIManager;
 import com.igrium.aivillagers.subsystems.impl.ChatListeningSubsystem;
 import com.igrium.aivillagers.subsystems.impl.ChatSpeechSubsystem;
 import com.igrium.aivillagers.subsystems.impl.DummyAISubsystem;
+import com.igrium.aivillagers.subsystems.impl.GptAISubsystem;
 import com.igrium.aivillagers.subsystems.impl.PlayHTSpeechSubsystem;
 
 public class SubsystemTypes {
@@ -40,6 +41,7 @@ public class SubsystemTypes {
         LISTENING_REGISTRY.put("chat", ChatListeningSubsystem.TYPE);
 
         AI_REGISTRY.put("dummy", DummyAISubsystem.TYPE);
+        AI_REGISTRY.put("gpt", GptAISubsystem.TYPE);
 
         SPEECH_REGISTRY.put("chat", ChatSpeechSubsystem.TYPE);
         SPEECH_REGISTRY.put("playht", PlayHTSpeechSubsystem.TYPE);

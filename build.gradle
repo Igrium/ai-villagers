@@ -27,6 +27,7 @@ dependencies {
 	modRuntimeOnly "maven.modrinth:simple-voice-chat:fabric-1.21.4-2.5.26"
 
 	implementation include(project(':playht-api'))
+	implementation 'io.github.sashirestela:simple-openai:3.10.0'
 }
 
 processResources {
