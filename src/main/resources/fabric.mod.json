@@ -16,6 +16,9 @@
         ],
         "voicechat": [
             "com.igrium.aivillagers.SpeechVCPlugin"
+        ],
+        "cardinal-components": [
+            "com.igrium.aivillagers.AIVillagersComponents"
         ]
     },
     "mixins": [
@@ -25,8 +28,15 @@
         "fabricloader": ">=0.16.9",
         "minecraft": "~1.21.4",
         "java": ">=21",
-        "fabric-api": "*"
+        "fabric-api": "*",
+        "cardinal-components-base": "*",
+        "cardinal-components-entity": "*"
     },
     "suggests": {
+    },
+    "custom": {
+        "cardinal-components": [
+            "ai-villagers:chat_history"
+        ]
     }
 }
