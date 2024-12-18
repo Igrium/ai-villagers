@@ -1,13 +1,14 @@
 package com.igrium.aivillagers.gpt;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import com.aallam.openai.api.chat.ChatMessage;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 
-import io.github.sashirestela.openai.domain.chat.ChatMessage;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper.WrapperLookup;
@@ -26,7 +27,7 @@ public class ChatHistoryComponent implements Component {
     }
     
     private final Entity entity;
-    private List<ChatMessage> messageHistory = new ArrayList<>();
+    private final List<ChatMessage> messageHistory = Collections.synchronizedList(new ArrayList<>());
 
     public ChatHistoryComponent(Entity entity) {
         this.entity = entity;
@@ -42,7 +43,6 @@ public class ChatHistoryComponent implements Component {
 
     @Override
     public void readFromNbt(NbtCompound tag, WrapperLookup registryLookup) {
-        
     }
 
     @Override

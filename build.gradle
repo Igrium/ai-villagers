@@ -39,8 +39,11 @@ dependencies {
 	modImplementation include("org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cca_version}");
 	modImplementation include("org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cca_version}");
 
+	implementation include("com.aallam.openai:openai-client:3.8.2")
+	implementation "io.ktor:ktor-client-java:2.3.12"
+
 	implementation include(project(':playht-api'))
-	implementation('io.github.sashirestela:simple-openai:3.10.0')
+	implementation(include('io.github.sashirestela:simple-openai:3.10.0'))
 
 }
 

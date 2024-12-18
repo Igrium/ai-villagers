@@ -4,11 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.gson.JsonObject;
 import com.igrium.aivillagers.AIManager;
-import com.igrium.aivillagers.subsystems.impl.ChatListeningSubsystem;
-import com.igrium.aivillagers.subsystems.impl.ChatSpeechSubsystem;
-import com.igrium.aivillagers.subsystems.impl.DummyAISubsystem;
-import com.igrium.aivillagers.subsystems.impl.GptAISubsystem;
-import com.igrium.aivillagers.subsystems.impl.PlayHTSpeechSubsystem;
+import com.igrium.aivillagers.subsystems.impl.*;
 
 public class SubsystemTypes {
     public static final BiMap<String, SubsystemType<? extends ListeningSubsystem>> LISTENING_REGISTRY = HashBiMap.create();
