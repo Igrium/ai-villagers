@@ -1,22 +1,14 @@
 package com.igrium.aivillagers.gpt
 
-import com.aallam.openai.api.chat.ChatCompletionRequest
-import com.aallam.openai.api.chat.ChatMessage
-import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.chat.*
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
-import com.igrium.aivillagers.AIManager
-import com.igrium.aivillagers.subsystems.AISubsystem
 import com.igrium.aivillagers.subsystems.impl.GptAISubsystem
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.future.future
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.entity.Entity
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -31,8 +23,11 @@ class GptClient @JvmOverloads constructor(
     private val aiSubsystem: GptAISubsystem,
     private val apiKey: String,
     private val timeout: Int = 60000,
-    private val model: String = "gpt-4o-mini"
+    private val modelName: String = "gpt-4o-mini"
 ) {
+    private val availableFunctions = Collections.synchronizedMap(mutableMapOf<String, ToolCallFunction>(
+        "offerTrade" to offerTradeFunction
+    ));
 
     private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("OpenAI Interface"))
 
@@ -56,27 +51,46 @@ class GptClient @JvmOverloads constructor(
             role = ChatRole.User,
             content = message
         )
+        val history = aiInterface.getHistory(villager);
+        if (history.isEmpty()) {
+            history.add(ChatMessage(
+                role = ChatRole.System,
+                content = "You are a Minecraft villager like the ones from Villager News. Villagers speak casually, are easily offended, stubborn, and charge exorbitant prices. Short phrases"
+            ))
+        }
         aiInterface.getHistory(villager).add(msg);
         return scope.future { doChatCompletion(villager, target) }
     }
 
     /**
      * Check the villager's message history and perform a chat completion request.
+     * Could be called from the AI subsystem or from the return of a tool call.
      * @param villager The subject villager.
      * @param target The entity we're currently speaking with.
+     * @return The message content the LLM returned, if any.
      */
     private suspend fun doChatCompletion(villager: Entity, target: Entity?): String? {
-        val request = ChatCompletionRequest(
-            model = ModelId(this.model),
+
+        val request = chatCompletionRequest {
+            model = ModelId(modelName)
             messages = aiInterface.getHistory(villager)
-        )
+            tools {
+                for ((name, func) in availableFunctions) {
+                    function(name, func)
+                }
+                toolChoice = ToolChoice.Auto
+            }
+        }
 
-        val completion = openAI.chatCompletion(request);
+        val response = openAI.chatCompletion(request);
 
-        val choices = completion.choices
+        val choices = response.choices
         if (choices.isEmpty()) return null;
 
         val message = choices[0].message;
+        val history = aiInterface.getHistory(villager)
+        history.add(message);
+
         val msgContent = message.content;
 
         // This is done here because message may have been received
@@ -84,27 +98,32 @@ class GptClient @JvmOverloads constructor(
         if (!msgContent.isNullOrBlank()) {
             aiSubsystem.doSpeak(villager, null, msgContent)
         }
-        aiInterface.getHistory(villager).add(message);
-        return msgContent;
-//        val toolCalls = message.toolCalls;
-//        if (toolCalls != null) {
-//            var hadToolCall: Boolean = false;
-//            for (call in toolCalls) {
-//
-//            }
-//        }
-    }
 
+        // HANDLE TOOL CALLS
+        for (toolCall in message.toolCalls.orEmpty()) {
+            require(toolCall is ToolCall.Function) { "Tool call is not a function!" }
+            val name = toolCall.function.name
+            val function = availableFunctions[name]
+            require(function != null) { "Unknown function: $name" }
 
-    private fun callCurrentWeather(args: JsonObject): String {
-        val location = args.getValue("location").jsonPrimitive.content;
-        return when (location) {
-            "San Francisco" -> """"{"location": "San Francisco", "temperature": "72", "unit": "fahrenheit"}"""
-            "Tokyo" -> """{"location": "Tokyo", "temperature": "10", "unit": "celsius"}"""
-            "Paris" -> """{"location": "Paris", "temperature": "22", "unit": "celsius"}"""
-            else -> """{"location": "$location", "temperature": "unknown", "unit": "unknown"}"""
+            scope.launch {
+                val result = function.impl(aiInterface, villager, target, toolCall.function.argumentsAsJson())
+                history.add(
+                    ChatMessage(
+                        role = ChatRole.Tool,
+                        content = result,
+                        toolCallId = toolCall.id
+                    )
+                )
+                doChatCompletion(villager, target);
+            }
+
         }
+
+        return msgContent;
+
     }
+
 
     fun stop() {
         scope.cancel("AI subsystem shutting down...");
