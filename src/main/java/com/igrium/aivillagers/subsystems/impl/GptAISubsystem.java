@@ -1,8 +1,8 @@
 package com.igrium.aivillagers.subsystems.impl;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -11,17 +11,23 @@ import org.slf4j.LoggerFactory;
 import com.igrium.aivillagers.AIManager;
 import com.igrium.aivillagers.gpt.ChatHistoryComponent;
 import com.igrium.aivillagers.gpt.GptUtil;
+import com.igrium.aivillagers.gpt.GptUtil.AIContext;
+import com.igrium.aivillagers.gpt.OfferTradeFunction;
 import com.igrium.aivillagers.subsystems.AISubsystem;
-import com.igrium.aivillagers.subsystems.SubsystemType;
 import com.igrium.aivillagers.subsystems.SpeechSubsystem.SpeechStream;
+import com.igrium.aivillagers.subsystems.SubsystemType;
 
 import io.github.sashirestela.openai.SimpleOpenAI;
-import io.github.sashirestela.openai.domain.chat.ChatRequest;
-import io.github.sashirestela.openai.domain.chat.Chat.Choice;
+import io.github.sashirestela.openai.common.function.FunctionDef;
+import io.github.sashirestela.openai.common.function.FunctionExecutor;
+import io.github.sashirestela.openai.common.tool.ToolCall;
 import io.github.sashirestela.openai.domain.chat.Chat;
+import io.github.sashirestela.openai.domain.chat.Chat.Choice;
 import io.github.sashirestela.openai.domain.chat.ChatMessage;
 import io.github.sashirestela.openai.domain.chat.ChatMessage.SystemMessage;
+import io.github.sashirestela.openai.domain.chat.ChatMessage.ToolMessage;
 import io.github.sashirestela.openai.domain.chat.ChatMessage.UserMessage;
+import io.github.sashirestela.openai.domain.chat.ChatRequest;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -36,13 +42,15 @@ public class GptAISubsystem implements AISubsystem {
     public static final class GptAIConfig {
         public String baseUrl = "https://api.openai.com";
         public String apiKey;
-        public String model = "gpt-4o-mini";
+        public String model = "gpt-4o";
         public int maxCompletionTokens = 200;
     }
 
     private final SimpleOpenAI openAI;
     private final AIManager aiManager;
     private final GptAIConfig config;
+
+    private FunctionExecutor functionExecutor;
 
     public GptAISubsystem(AIManager aiManager, GptAIConfig config) {
         this.aiManager = aiManager;
@@ -51,6 +59,21 @@ public class GptAISubsystem implements AISubsystem {
                 .apiKey(config.apiKey)
                 .build();
         this.config = config;
+
+        prepFunctions();
+    }
+
+    private void prepFunctions() {
+        List<FunctionDef> functions = new ArrayList<>();
+
+        functions.add(FunctionDef.builder()
+                .name("set_trade")
+                .description("Make a trade")
+                .functionalClass(OfferTradeFunction.class)
+                .strict(true)
+                .build());
+
+        functionExecutor = new FunctionExecutor(functions);
     }
 
     public SimpleOpenAI getOpenAI() {
@@ -60,8 +83,6 @@ public class GptAISubsystem implements AISubsystem {
         return aiManager;
     }
 
-    private final Lock chatLock = new ReentrantLock();
-
     @Override
     public void onSpokenTo(Entity villager, ServerPlayerEntity player, String message) {
         Util.getMainWorkerExecutor().execute(() -> onSpokenToInternal(villager, player, message));
@@ -70,26 +91,48 @@ public class GptAISubsystem implements AISubsystem {
     protected void onSpokenToInternal(Entity villager, ServerPlayerEntity player, String message) {
         List<ChatMessage> messageHistory = ChatHistoryComponent.get(villager).getMessageHistory();
         if (messageHistory.isEmpty()) {
-            messageHistory.add(SystemMessage.of("You are a Minecraft villager."));
+            messageHistory.add(SystemMessage.of(
+                    "You are a Minecraft villager like the ones from Villager News. Villagers speak casually, are easiliy offended, stubborn, and charge exorbitant prices. Short phrases"));
         }
         messageHistory.add(UserMessage.of(message));
+
+        sendRequest(villager, player, messageHistory);
         
+        // ChatRequest request = ChatRequest.builder()
+        //         .model(config.model)
+        //         .messages(messageHistory)
+        //         // .stream(true)
+        //         .maxCompletionTokens(config.maxCompletionTokens)
+        //         .build();
+
+        // // openAI.chatCompletions().createStream(request)
+        // //         .thenAccept(res -> handleStreamResponse(villager, player, res))
+        // //         .exceptionally(e -> {
+        //             // LOGGER.error("Error accessing OpenAI", e);
+        //             // aiManager.getSpeechSubsystem().speak(villager, "Error accessing OpenAI!");
+        //             // return null;
+        // //         }).whenComplete((r, e) ->  chatLock.unlock());
+
+        // openAI.chatCompletions().create(request)
+        //         .thenAccept(chat -> handleResponse(villager, player, chat))
+        //         .exceptionally(e -> {
+        //             LOGGER.error("Error accessing OpenAI", e);
+        //             aiManager.getSpeechSubsystem().speak(villager, "Error accessing OpenAI!");
+        //             return null;
+        //         });
+    }
+
+    private CompletableFuture<?> sendRequest(Entity villager, ServerPlayerEntity player,
+            List<ChatMessage> messageHistory) {
         ChatRequest request = ChatRequest.builder()
                 .model(config.model)
                 .messages(messageHistory)
                 // .stream(true)
                 .maxCompletionTokens(config.maxCompletionTokens)
+                .tools(functionExecutor.getToolFunctions())
                 .build();
 
-        // openAI.chatCompletions().createStream(request)
-        //         .thenAccept(res -> handleStreamResponse(villager, player, res))
-        //         .exceptionally(e -> {
-                    // LOGGER.error("Error accessing OpenAI", e);
-                    // aiManager.getSpeechSubsystem().speak(villager, "Error accessing OpenAI!");
-                    // return null;
-        //         }).whenComplete((r, e) ->  chatLock.unlock());
-
-        openAI.chatCompletions().create(request)
+        return openAI.chatCompletions().create(request)
                 .thenAccept(chat -> handleResponse(villager, player, chat))
                 .exceptionally(e -> {
                     LOGGER.error("Error accessing OpenAI", e);
@@ -103,10 +146,29 @@ public class GptAISubsystem implements AISubsystem {
         if (choices == null || choices.isEmpty())
             return;
         
-        String message = choices.get(0).getMessage().getContent();
-        if (message != null && !message.isBlank())
-            aiManager.getSpeechSubsystem().speak(villager, message);
-        ChatHistoryComponent.get(villager).getMessageHistory().add(choices.get(0).getMessage());
+        Choice choice = choices.get(0);
+        
+        String msgContent = choice.getMessage().getContent();
+        if (msgContent != null && !msgContent.isBlank())
+            aiManager.getSpeechSubsystem().speak(villager, msgContent);
+        
+        List<ChatMessage> messageHistory = ChatHistoryComponent.get(villager).getMessageHistory();
+        messageHistory.add(choice.getMessage());
+
+        List<ToolCall> toolCalls = choice.getMessage().getToolCalls();
+        if (toolCalls != null) {
+            GptUtil.AI_CONTEXT.set(new AIContext(villager, this));
+            boolean hadToolCall = false;
+            for (var toolCall : toolCalls) {
+                var result = functionExecutor.execute(toolCall.getFunction());
+                messageHistory.add(ToolMessage.of(result.toString(), toolCall.getId()));
+                hadToolCall = true;
+            }
+            if (hadToolCall) {
+                sendRequest(villager, player, messageHistory);
+            }
+        }
+
     }
 
     protected void handleStreamResponse(Entity villager, ServerPlayerEntity player, Stream<Chat> stream) {

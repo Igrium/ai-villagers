@@ -8,13 +8,8 @@ import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 
 import io.github.sashirestela.openai.domain.chat.ChatMessage;
-import io.github.sashirestela.openai.domain.chat.ChatMessage.AssistantMessage;
-import io.github.sashirestela.openai.domain.chat.ChatMessage.ResponseMessage;
-import io.github.sashirestela.openai.domain.chat.ChatMessage.UserMessage;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.util.Identifier;
 
@@ -52,17 +47,17 @@ public class ChatHistoryComponent implements Component {
 
     @Override
     public void writeToNbt(NbtCompound tag, WrapperLookup registryLookup) {
-        NbtList messages = new NbtList();
-        for (var message : messageHistory) {
-            if (message instanceof UserMessage userMessage) {
-                messages.add(NbtString.of(userMessage.getContent().toString()));
-            } else if (message instanceof ResponseMessage responseMessage) {
-                messages.add(NbtString.of(responseMessage.getContent()));
-            } else if (message instanceof AssistantMessage assistantMessage) {
-                messages.add(NbtString.of(assistantMessage.getContent().toString()));
-            }
-            // messages.add(NbtString.of(message.))
-        }
+        // NbtList messages = new NbtList();
+        // for (var message : messageHistory) {
+        //     if (message instanceof UserMessage userMessage) {
+        //         messages.add(NbtString.of(userMessage.getContent().toString()));
+        //     } else if (message instanceof ResponseMessage responseMessage) {
+        //         messages.add(NbtString.of(responseMessage.getContent()));
+        //     } else if (message instanceof AssistantMessage assistantMessage) {
+        //         messages.add(NbtString.of(assistantMessage.getContent().toString()));
+        //     }
+        //     // messages.add(NbtString.of(message.))
+        // }
     }
     
 }

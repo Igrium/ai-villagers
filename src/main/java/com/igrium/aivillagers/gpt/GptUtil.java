@@ -5,12 +5,23 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import com.igrium.aivillagers.subsystems.AISubsystem;
+
 import io.github.sashirestela.openai.common.tool.ToolCall;
 import io.github.sashirestela.openai.domain.chat.Chat;
 import io.github.sashirestela.openai.domain.chat.Chat.Choice;
 import io.github.sashirestela.openai.domain.chat.ChatMessage.ResponseMessage;
+import net.minecraft.entity.Entity;
 
 public class GptUtil {
+
+    public static record AIContext(Entity villager, AISubsystem aiSubsystem) {};
+
+    /**
+     * This is <i>extremely</i> dumb, but the OpenAI library doesn't provide an easy
+     * way to pass context into function.
+     */
+    public static final ThreadLocal<AIContext> AI_CONTEXT = new ThreadLocal<>();
 
     /**
      * Read an entire chat stream and construct a single response choice from it.
@@ -29,7 +40,7 @@ public class GptUtil {
         chatStream.forEach(responseChunk -> {
             if (chunkConsumer != null)
                 chunkConsumer.accept(responseChunk);
-                
+
             List<Choice> choices = responseChunk.getChoices();
             if (choices.isEmpty()) return;
 

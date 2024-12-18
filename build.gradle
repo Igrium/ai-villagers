@@ -1,6 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.9-SNAPSHOT'
 	id 'maven-publish'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
 version = project.mod_version
@@ -14,6 +15,7 @@ repositories {
 	maven { url = 'https://maven.maxhenkel.de/repository/public' }
 	maven { url = 'https://api.modrinth.com/maven' }
 	maven { url = "https://maven.ladysnake.org/releases" }
+    mavenCentral()
 }
 
 // For some REALLY DUMB reason, simple-openai packs sfl4j-simple
@@ -27,6 +29,8 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
+	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "de.maxhenkel.voicechat:voicechat-api:2.3.3"
@@ -37,7 +41,7 @@ dependencies {
 
 	implementation include(project(':playht-api'))
 	implementation('io.github.sashirestela:simple-openai:3.10.0')
-	
+
 }
 
 processResources {
@@ -58,8 +62,6 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
@@ -84,4 +86,7 @@ publishing {
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
 	}
+}
+kotlin {
+    jvmToolchain(21)
 }
