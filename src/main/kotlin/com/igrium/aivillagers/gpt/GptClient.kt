@@ -4,6 +4,8 @@ import com.aallam.openai.api.chat.*
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
+import com.igrium.aivillagers.chat.LiteralMessage
+import com.igrium.aivillagers.chat.Message
 import com.igrium.aivillagers.subsystems.impl.GptAISubsystem
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.future
@@ -51,14 +53,15 @@ class GptClient @JvmOverloads constructor(
             role = ChatRole.User,
             content = message
         )
-        val history = aiInterface.getHistory(villager);
-        if (history.isEmpty()) {
-            history.add(ChatMessage(
-                role = ChatRole.System,
-                content = "You are a Minecraft villager like the ones from Villager News. Villagers speak casually, are easily offended, stubborn, and charge exorbitant prices. Short phrases"
-            ))
-        }
-        aiInterface.getHistory(villager).add(msg);
+//        val history = aiInterface.getChatHistory(villager);
+//        if (history.isEmpty()) {
+//            history.add(ChatMessage(
+//                role = ChatRole.System,
+//                content = "You are a Minecraft villager like the ones from Villager News. Villagers speak casually, are easily offended, stubborn, and charge exorbitant prices. Short phrases"
+//            ))
+//        }
+//        aiInterface.getChatHistory(villager).add(msg);
+        aiInterface.getMessageHistory(villager).add(LiteralMessage(msg));
         return scope.future { doChatCompletion(villager, target) }
     }
 
@@ -73,7 +76,7 @@ class GptClient @JvmOverloads constructor(
 
         val request = chatCompletionRequest {
             model = ModelId(modelName)
-            messages = aiInterface.getHistory(villager)
+            messages = aiInterface.getChatHistory(villager)
             tools {
                 for ((name, func) in availableFunctions) {
                     function(name, func)
@@ -88,8 +91,9 @@ class GptClient @JvmOverloads constructor(
         if (choices.isEmpty()) return null;
 
         val message = choices[0].message;
-        val history = aiInterface.getHistory(villager)
-        history.add(message);
+        val history = aiInterface.getMessageHistory(villager)
+        history.add(LiteralMessage(message));
+//        history.add(message);
 
         val msgContent = message.content;
 
@@ -109,10 +113,12 @@ class GptClient @JvmOverloads constructor(
             scope.launch {
                 val result = function.impl(aiInterface, villager, target, toolCall.function.argumentsAsJson())
                 history.add(
-                    ChatMessage(
-                        role = ChatRole.Tool,
-                        content = result,
-                        toolCallId = toolCall.id
+                    LiteralMessage(
+                        ChatMessage(
+                            role = ChatRole.Tool,
+                            content = result,
+                            toolCallId = toolCall.id
+                        )
                     )
                 )
                 doChatCompletion(villager, target);

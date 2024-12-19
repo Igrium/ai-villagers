@@ -1,5 +1,6 @@
 package com.igrium.aivillagers;
 
+import com.igrium.aivillagers.chat.MessageType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -45,6 +46,7 @@ public class AIVillagers implements ModInitializer {
     public void onInitialize() {
         instance = this;
         SubsystemTypes.registerDefaults();
+        MessageType.registerDefaults();
 
         config = AIVillagersConfig.load(FabricLoader.getInstance().getConfigDir().resolve("ai_villagers.json"));
         try {
