@@ -1,16 +1,19 @@
 package com.igrium.aivillagers.gpt;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 import com.aallam.openai.api.chat.ChatMessage;
+import com.igrium.aivillagers.chat.ChangeProfessionMessage;
 import com.igrium.aivillagers.chat.InitialPromptMessage;
 import com.igrium.aivillagers.chat.Message;
 import com.igrium.aivillagers.chat.MessageType;
+import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.village.VillagerProfession;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
@@ -29,12 +32,19 @@ public class ChatHistoryComponent implements Component {
 
     public static final ComponentKey<ChatHistoryComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of("ai-villagers:chat_history"), ChatHistoryComponent.class);
 
-    public static ChatHistoryComponent get(Entity entity) {
+    public static @NotNull ChatHistoryComponent get(Entity entity) {
         return KEY.get(entity);
+    }
+
+    public static @Nullable ChatHistoryComponent getNullable(Entity entity) {
+        return KEY.getNullable(entity);
     }
 
     private final Entity entity;
     private final List<Message> messageHistory = Collections.synchronizedList(new ArrayList<>());
+
+    @Nullable
+    private VillagerProfession originalProfession;
 
     public ChatHistoryComponent(Entity entity) {
         this.entity = entity;
@@ -44,7 +54,22 @@ public class ChatHistoryComponent implements Component {
         return messageHistory;
     }
 
+    /**
+     * The original profession that this villager had before changing. If unset, current profession is used.
+     */
+    public Optional<VillagerProfession> getOriginalProfession() {
+        return Optional.ofNullable(originalProfession);
+    }
+
+    /**
+     * The original profession that this villager had before changing. If unset, current profession is used.
+     */
+    public void setOriginalProfession(@Nullable VillagerProfession originalProfession) {
+        this.originalProfession = originalProfession;
+    }
+
     private final InitialPromptMessage initialPrompt = new InitialPromptMessage();
+
 
     /**
      * Compile a list of chat messages from the message history.
@@ -57,6 +82,38 @@ public class ChatHistoryComponent implements Component {
                             messageHistory.stream().map(msg -> msg.toChatMessage(this))).
                     toList();
         }
+    }
+
+    /**
+     * Return the villager's profession at a given message index. If the given index contains a change
+     * profession message, the new profession is returned.
+     *
+     * @param index Index to use.
+     * @return The villager's profession at that point. <code>null</code> if it's not a villager.
+     */
+    public @Nullable VillagerProfession getProfessionAt(int index) {
+        if (!(entity instanceof VillagerEntity villager)) return null;
+
+        synchronized (messageHistory) {
+            if (messageHistory.isEmpty()) return originalProfession;
+
+            if (index >= messageHistory.size()) {
+                index = messageHistory.size();
+            }
+
+            // Step through message history backwards until change profession message is encountered
+            ListIterator<Message> iterator = messageHistory.listIterator(index);
+            Message message;
+            while (iterator.hasPrevious()) {
+                message = iterator.previous();
+                if (message instanceof ChangeProfessionMessage(VillagerProfession profession)) {
+                    return profession;
+                }
+            }
+        }
+
+        var original = originalProfession;
+        return original != null ? original : villager.getVillagerData().getProfession();
     }
 
     public Entity getEntity() {

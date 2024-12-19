@@ -1,8 +1,10 @@
 package com.igrium.aivillagers.chat;
 
 import com.aallam.openai.api.chat.ChatMessage;
+import com.igrium.aivillagers.chat.prompts.PromptManager;
 import com.igrium.aivillagers.gpt.ChatHistoryComponent;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.village.VillagerProfession;
 
 /**
  * Represents the initial prompt for the LLM. Automatically added at the beginning of the chat history for each villager.
@@ -21,7 +23,15 @@ public class InitialPromptMessage implements Message {
 
     @Override
     public ChatMessage toChatMessage(ChatHistoryComponent history) {
-        return ChatMessage.Companion.System("You are a minecraft villager.", null);
+        PromptManager promptManager = PromptManager.getInstance();
+        String prompt = promptManager.getBasePrompt() + " "
+                + promptManager.getProfessionPrompt(getOriginalProfession(history), false);
+
+        return ChatMessage.Companion.System(promptManager.applyTemplate(history, prompt), null);
+    }
+
+    private VillagerProfession getOriginalProfession(ChatHistoryComponent history) {
+        return history.getOriginalProfession().orElse(VillagerProfession.NONE);
     }
 
     @Override

@@ -42,6 +42,8 @@ dependencies {
 	implementation include("com.aallam.openai:openai-client:3.8.2")
 	implementation "io.ktor:ktor-client-java:2.3.12"
 
+	implementation include("org.antlr:ST4:4.3.4")
+
 	implementation include(project(':playht-api'))
 
 }

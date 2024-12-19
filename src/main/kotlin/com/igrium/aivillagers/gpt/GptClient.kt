@@ -53,14 +53,7 @@ class GptClient @JvmOverloads constructor(
             role = ChatRole.User,
             content = message
         )
-//        val history = aiInterface.getChatHistory(villager);
-//        if (history.isEmpty()) {
-//            history.add(ChatMessage(
-//                role = ChatRole.System,
-//                content = "You are a Minecraft villager like the ones from Villager News. Villagers speak casually, are easily offended, stubborn, and charge exorbitant prices. Short phrases"
-//            ))
-//        }
-//        aiInterface.getChatHistory(villager).add(msg);
+
         aiInterface.getMessageHistory(villager).add(LiteralMessage(msg));
         return scope.future { doChatCompletion(villager, target) }
     }
@@ -93,7 +86,6 @@ class GptClient @JvmOverloads constructor(
         val message = choices[0].message;
         val history = aiInterface.getMessageHistory(villager)
         history.add(LiteralMessage(message));
-//        history.add(message);
 
         val msgContent = message.content;
 

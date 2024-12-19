@@ -36,6 +36,8 @@ public abstract class MessageType<T extends Message> {
 
     public static void registerDefaults() {
         REGISTRY.put("literal", LiteralMessage.TYPE);
+        REGISTRY.put("initialPrompt", InitialPromptMessage.TYPE);
+        REGISTRY.put("changeProfession", ChangeProfessionMessage.TYPE);
     }
 
     // ---------

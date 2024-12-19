@@ -1,6 +1,7 @@
 package com.igrium.aivillagers;
 
 import com.igrium.aivillagers.chat.MessageType;
+import com.igrium.aivillagers.chat.prompts.PromptManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -17,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.igrium.aivillagers.subsystems.SubsystemTypes;
 import com.igrium.aivillagers.subsystems.impl.ChatListeningSubsystem;
-import com.igrium.openai.OpenAI;
 
 public class AIVillagers implements ModInitializer {
     public static final String MOD_ID = "ai-villagers";
@@ -31,15 +31,18 @@ public class AIVillagers implements ModInitializer {
     }
 
     private AIManager aiManager;
-
     public AIManager getAiManager() {
         return aiManager;
     }
 
     private AIVillagersConfig config;
-
     public AIVillagersConfig getConfig() {
         return config;
+    }
+
+    private PromptManager promptManager;
+    public PromptManager getPromptManager() {
+        return promptManager;
     }
 
     @Override
@@ -54,7 +57,8 @@ public class AIVillagers implements ModInitializer {
         } catch (Exception e) {
             throw new CrashException(CrashReport.create(e, "Error initializing AI manager."));
         }
-        
+
+        promptManager = new PromptManager();
 
         ServerMessageEvents.CHAT_MESSAGE.register(ChatListeningSubsystem::onChatMessage);
 
