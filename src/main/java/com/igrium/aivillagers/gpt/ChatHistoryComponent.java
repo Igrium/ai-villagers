@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 import com.aallam.openai.api.chat.ChatMessage;
+import com.aallam.openai.api.chat.ChatMessageBuilder;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
@@ -43,21 +46,24 @@ public class ChatHistoryComponent implements Component {
 
     @Override
     public void readFromNbt(NbtCompound tag, WrapperLookup registryLookup) {
+        synchronized (messageHistory) {
+            messageHistory.clear();
+            for (var nbt : tag.getList("history", NbtElement.COMPOUND_TYPE)) {
+                messageHistory.add(ChatMessagesKt.chatMessageFromNbt((NbtCompound) nbt));
+            }
+        }
     }
 
     @Override
     public void writeToNbt(NbtCompound tag, WrapperLookup registryLookup) {
-        // NbtList messages = new NbtList();
-        // for (var message : messageHistory) {
-        //     if (message instanceof UserMessage userMessage) {
-        //         messages.add(NbtString.of(userMessage.getContent().toString()));
-        //     } else if (message instanceof ResponseMessage responseMessage) {
-        //         messages.add(NbtString.of(responseMessage.getContent()));
-        //     } else if (message instanceof AssistantMessage assistantMessage) {
-        //         messages.add(NbtString.of(assistantMessage.getContent().toString()));
-        //     }
-        //     // messages.add(NbtString.of(message.))
-        // }
+        NbtList history = new NbtList();
+        synchronized (messageHistory) {
+            for (var chat : messageHistory) {
+                history.add(ChatMessagesKt.toNbt(chat));
+            }
+        }
+        tag.put("history", history);
     }
-    
+
+
 }
