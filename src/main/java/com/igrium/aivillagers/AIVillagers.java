@@ -64,7 +64,5 @@ public class AIVillagers implements ModInitializer {
         });
 
         ServerTickEvents.END_SERVER_TICK.register(aiManager::tick);
-
-        KotlinTest.printTestString();
     }
 }

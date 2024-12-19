@@ -41,7 +41,7 @@ public class OfferTradeFunction implements Functional {
         Item sellItem = Registries.ITEM.get(Identifier.tryParse(sellItemID));
         Item buyItem = Registries.ITEM.get(Identifier.tryParse(buyItemID));
 
-        if (sellItem == null || sellItem == Items.AIR || buyItem == null || buyItem == Items.AIR) {
+        if (sellItem == Items.AIR || buyItem == Items.AIR) {
             return "FAILED: invalid item";
         }
 

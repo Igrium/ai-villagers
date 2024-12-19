@@ -11,4 +11,6 @@ import java.util.List;
  */
 public interface VillagerAIInterface {
     public List<ChatMessage> getHistory(Entity villager);
+
+    public String offerTrade(Entity villager, String sellItem, int sellAmount, String buyItem, int buyAmount);
 }

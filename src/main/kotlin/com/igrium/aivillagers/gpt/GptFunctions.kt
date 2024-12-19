@@ -1,16 +1,17 @@
 package com.igrium.aivillagers.gpt
 
 import com.aallam.openai.api.core.Parameters
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonObject
+import kotlinx.serialization.json.*
 import net.minecraft.entity.Entity
 import org.slf4j.LoggerFactory
 
-private suspend fun offerTrade(aiInterface: VillagerAIInterface, villager: Entity, target: Entity?, params: JsonObject): String {
-    LoggerFactory.getLogger("Gpt Functions")
-        .info("Villager {} is offering to trade {} {}", villager.nameForScoreboard, target?.nameForScoreboard, params);
-    return "success"
+private fun offerTrade(aiInterface: VillagerAIInterface, villager: Entity, target: Entity?, params: JsonObject): String {
+    val sellItem = params.getValue("sellItem").jsonPrimitive.content;
+    val sellAmount = params.getValue("sellAmount").jsonPrimitive.int;
+    val buyItem = params.getValue("buyItem").jsonPrimitive.content;
+    val buyAmount = params.getValue("buyAmount").jsonPrimitive.int;
+
+    return aiInterface.offerTrade(villager, sellItem, sellAmount, buyItem, buyAmount);
 }
 
 val offerTradeFunction = ToolCallFunction(
