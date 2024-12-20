@@ -1,3 +1,4 @@
+@file:JvmName("ChatMessages")
 package com.igrium.aivillagers.gpt
 
 import com.aallam.openai.api.chat.*

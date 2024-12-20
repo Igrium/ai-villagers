@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import net.minecraft.nbt.NbtCompound;
 
+@Deprecated
 public abstract class MessageType<T extends Message> {
     public static final BiMap<String, MessageType<?>> REGISTRY = HashBiMap.create();
 

@@ -6,6 +6,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.village.VillagerProfession;
 
+@Deprecated
 public record ChangeProfessionMessage(VillagerProfession profession) implements Message {
 
     public static final MessageType<ChangeProfessionMessage> TYPE = new MessageType<ChangeProfessionMessage>() {

@@ -10,8 +10,12 @@ import java.util.List;
  * Function implementations for what villagers can do.
  */
 public interface VillagerAIInterface {
+    /**
+     * Obtain a mutable list of a villager's chat history.
+     * @param villager Villager in question.
+     * @return Mutable chat history.
+     */
     public List<ChatMessage> getChatHistory(Entity villager);
-    public List<Message> getMessageHistory(Entity villager);
 
     public String offerTrade(Entity villager, String sellItem, int sellAmount, String buyItem, int buyAmount);
 }

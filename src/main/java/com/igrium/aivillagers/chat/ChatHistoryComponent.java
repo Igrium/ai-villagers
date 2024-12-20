@@ -1,10 +1,9 @@
 package com.igrium.aivillagers.chat;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 import com.aallam.openai.api.chat.ChatMessage;
-import net.minecraft.entity.passive.VillagerEntity;
+import com.igrium.aivillagers.gpt.ChatMessages;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.village.VillagerProfession;
@@ -18,7 +17,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.util.Identifier;
-import org.slf4j.LoggerFactory;
 
 /**
  * Keeps track of chat history.
@@ -38,7 +36,7 @@ public class ChatHistoryComponent implements Component {
     }
 
     private final Entity entity;
-    private final List<Message> messageHistory = Collections.synchronizedList(new ArrayList<>());
+    private final List<ChatMessage> chatHistory = Collections.synchronizedList(new ArrayList<>());
 
     @Nullable
     private VillagerProfession originalProfession;
@@ -47,105 +45,48 @@ public class ChatHistoryComponent implements Component {
         this.entity = entity;
     }
 
-    public List<Message> getMessageHistory() {
-        return messageHistory;
-    }
-
-    /**
-     * The original profession that this villager had before changing. If unset, current profession is used.
-     */
-    public Optional<VillagerProfession> getOriginalProfession() {
-        return Optional.ofNullable(originalProfession);
-    }
-
-    /**
-     * The original profession that this villager had before changing. If unset, current profession is used.
-     */
-    public void setOriginalProfession(@Nullable VillagerProfession originalProfession) {
-        this.originalProfession = originalProfession;
-    }
-
-    private final InitialPromptMessage initialPrompt = new InitialPromptMessage();
-
-    public InitialPromptMessage getInitialPrompt() {
-        return initialPrompt;
-    }
-
-    /**
-     * Compile a list of chat messages from the message history.
-     * @return Immutable chat message list.
-     */
     public List<ChatMessage> getChatHistory() {
-        synchronized (messageHistory) {
-            return Stream.concat(
-                            Stream.of(initialPrompt.toChatMessage(this)),
-                            messageHistory.stream().map(msg -> msg.toChatMessage(this))).
-                    toList();
-        }
+        return chatHistory;
     }
 
     /**
-     * Return the villager's profession at a given message index. If the given index contains a change
-     * profession message, the new profession is returned.
-     *
-     * @param index Index to use.
-     * @return The villager's profession at that point. <code>null</code> if it's not a villager.
+     * Get this villager's chat history. If there's no initial prompt, calculate it and add it to the beginning of the list.
+     * @return Mutable list of chat messages.
      */
-    public @Nullable VillagerProfession getProfessionAt(int index) {
-        if (!(entity instanceof VillagerEntity villager)) return null;
-
-        synchronized (messageHistory) {
-            if (messageHistory.isEmpty()) return originalProfession;
-
-            if (index >= messageHistory.size()) {
-                index = messageHistory.size();
+    public List<ChatMessage> prepareChatHistory() {
+        synchronized (chatHistory) {
+            if (chatHistory.isEmpty()) {
+                chatHistory.add(PromptManager.getInstance().getInitialPromptMessage(this));
             }
+            return chatHistory;
+        }
+    }
 
-            // Step through message history backwards until change profession message is encountered
-            ListIterator<Message> iterator = messageHistory.listIterator(index);
-            Message message;
-            while (iterator.hasPrevious()) {
-                message = iterator.previous();
-                if (message instanceof ChangeProfessionMessage(VillagerProfession profession)) {
-                    return profession;
-                }
+    @Override
+    public void writeToNbt(NbtCompound nbt, WrapperLookup wrapperLookup) {
+        NbtList list = new NbtList();
+        synchronized (chatHistory) {
+            for (var msg : chatHistory) {
+                list.add(ChatMessages.toNbt(msg));
             }
         }
-
-        var original = originalProfession;
-        return original != null ? original : villager.getVillagerData().getProfession();
+        nbt.put("messages", list);
     }
+
+    @Override
+    public void readFromNbt(NbtCompound nbt, WrapperLookup wrapperLookup) {
+        NbtList list = nbt.getList("messages", NbtElement.COMPOUND_TYPE);
+        synchronized (chatHistory) {
+            chatHistory.clear();
+            for (var msg : list) {
+                chatHistory.add(ChatMessages.chatMessageFromNbt((NbtCompound) msg));
+            }
+        }
+    }
+
 
     public Entity getEntity() {
         return entity;
     }
-
-    @Override
-    public void readFromNbt(NbtCompound tag, WrapperLookup registryLookup) {
-        try {
-            synchronized (messageHistory) {
-                messageHistory.clear();
-                for (var nbt : tag.getList("history", NbtElement.COMPOUND_TYPE)) {
-                    messageHistory.add(MessageType.loadMessage((NbtCompound) nbt));
-                }
-            }
-        } catch (Exception e) {
-            LoggerFactory.getLogger(getClass()).error("Error loading chat history for " + entity, e);
-        }
-
-    }
-
-    @Override
-    public void writeToNbt(NbtCompound tag, WrapperLookup registryLookup) {
-        NbtList history = new NbtList();
-        synchronized (messageHistory) {
-            for (var message : messageHistory) {
-//                history.add(ChatMessagesKt.toNbt(chat));
-                history.add(MessageType.saveMessage(message));
-            }
-        }
-        tag.put("history", history);
-    }
-
 
 }

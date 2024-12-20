@@ -8,6 +8,7 @@ import net.minecraft.village.VillagerProfession;
 /**
  * Represents the initial prompt for the LLM. Automatically added at the beginning of the chat history for each villager.
  */
+@Deprecated
 public class InitialPromptMessage implements Message {
 
     public static final MessageType<InitialPromptMessage> TYPE = new MessageType<>() {

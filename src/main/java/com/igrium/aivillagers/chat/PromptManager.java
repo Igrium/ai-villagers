@@ -1,5 +1,6 @@
 package com.igrium.aivillagers.chat;
 
+import com.aallam.openai.api.chat.ChatMessage;
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
 import com.igrium.aivillagers.AIVillagers;
@@ -86,6 +87,15 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
         return basePrompt;
     }
 
+    /**
+     * Get the initial prompt to use for defining a villager's identity.
+     * @param history Villager's chat history component.
+     * @return Initial prompt with templating applied.
+     */
+    public ChatMessage getInitialPromptMessage(ChatHistoryComponent history) {
+        return ChatMessage.Companion.System(applyTemplate(history, getBasePrompt()), null);
+    }
+
     public ProfessionPrompt getFallbackProfessionPrompt() {
         return fallbackProfessionPrompt;
     }
@@ -127,30 +137,18 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
         st.add("entity", language.get(chatHistory.getEntity().getType().getTranslationKey(), "villager"));
         st.add("name", chatHistory.getEntity().getDisplayName().getString());
 
-        VillagerProfession prof = villager != null ? villager.getVillagerData().getProfession()
-                : chatHistory.getOriginalProfession().orElse(VillagerProfession.NONE);
+        VillagerProfession prof = villager != null ? villager.getVillagerData().getProfession() : VillagerProfession.NONE;
         st.add("profession", VillagerUtils.getProfessionName(prof));
 
         // Check if it's going to be here to avoid recursion when calculating professionPrompt
         if (message.contains("<professionPrompt>")) {
-            st.add("professionPrompt", getProfessionPrompt(getOriginalProfession(chatHistory), false));
+            st.add("professionPrompt", getProfessionPrompt(prof, false));
         }
 
         return st.render();
     }
 
-    private VillagerProfession getOriginalProfession(ChatHistoryComponent history) {
-        return history.getOriginalProfession().orElseGet(() -> {
-            if (history.getEntity() instanceof VillagerEntity e) {
-                return e.getVillagerData().getProfession();
-            } else {
-                return VillagerProfession.NONE;
-            }
-        });
-    }
-
     // DATAPACK LOADING
-
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private static class PromptJson {

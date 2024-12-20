@@ -28,12 +28,7 @@ public class VillagerAIInterfaceImpl implements VillagerAIInterface {
 
     @Override
     public List<ChatMessage> getChatHistory(Entity villager) {
-        return ChatHistoryComponent.get(villager).getChatHistory();
-    }
-
-    @Override
-    public List<Message> getMessageHistory(Entity villager) {
-        return ChatHistoryComponent.get(villager).getMessageHistory();
+        return ChatHistoryComponent.get(villager).prepareChatHistory();
     }
 
     public static record TradeValidationResult(boolean success, @Nullable String reason) {

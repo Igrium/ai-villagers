@@ -1,11 +1,8 @@
 package com.igrium.aivillagers.cmd;
 
-import static net.minecraft.server.command.CommandManager.*;
-
-import com.igrium.aivillagers.chat.Message;
-import com.igrium.aivillagers.chat.MessageType;
+import com.aallam.openai.api.chat.ChatMessage;
 import com.igrium.aivillagers.chat.ChatHistoryComponent;
-import com.igrium.aivillagers.gpt.ChatMessagesKt;
+import com.igrium.aivillagers.gpt.ChatMessages;
 import com.igrium.aivillagers.util.VillagerCounterComponent;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -20,8 +17,10 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
 
 public class AICommand {
 
@@ -59,24 +58,19 @@ public class AICommand {
         Entity ent = EntityArgumentType.getEntity(context, "target");
         ChatHistoryComponent history = getHistory(ent);
 
-        List<Message> messages = history.getMessageHistory();
+        List<ChatMessage> messages = history.getChatHistory();
         if (messages.isEmpty()) {
             throw NO_HISTORY.create();
         }
         int i = 0;
-        
-        List<Message> fullMessages = new ArrayList<>(messages.size() + 1);
-        fullMessages.add(history.getInitialPrompt());
-        synchronized (messages) {
-            fullMessages.addAll(messages);
-        }
-        for (var message : fullMessages) {
+
+        for (var message : messages) {
             if (direct) {
                 context.getSource().sendFeedback(
-                        () -> NbtHelper.toPrettyPrintedText(MessageType.saveMessage(message)), false);
+                        () -> NbtHelper.toPrettyPrintedText(ChatMessages.toNbt(message)), false);
             } else {
                 context.getSource().sendFeedback(
-                        () -> Text.literal(ChatMessagesKt.toSimpleString(message, history) + "\n"), false);
+                        () -> Text.literal("\n" + ChatMessages.toSimpleString(message)), false);
             }
             i++;
         }
@@ -88,7 +82,7 @@ public class AICommand {
         Entity ent = EntityArgumentType.getEntity(context, "target");
         ChatHistoryComponent history = getHistory(ent);
 
-        List<Message> messages = history.getMessageHistory();
+        List<ChatMessage> messages = history.getChatHistory();
         int numMessages = messages.size();
         if (numMessages == 0) {
             throw NO_HISTORY.create();

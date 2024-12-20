@@ -54,7 +54,7 @@ class GptClient @JvmOverloads constructor(
             content = message
         )
 
-        aiInterface.getMessageHistory(villager).add(LiteralMessage(msg));
+        aiInterface.getChatHistory(villager).add(msg);
         return scope.future { doChatCompletion(villager, target) }
     }
 
@@ -84,8 +84,8 @@ class GptClient @JvmOverloads constructor(
         if (choices.isEmpty()) return null;
 
         val message = choices[0].message;
-        val history = aiInterface.getMessageHistory(villager)
-        history.add(LiteralMessage(message));
+        val history = aiInterface.getChatHistory(villager)
+        history.add(message);
 
         val msgContent = message.content;
 
@@ -105,12 +105,10 @@ class GptClient @JvmOverloads constructor(
             scope.launch {
                 val result = function.impl(aiInterface, villager, target, toolCall.function.argumentsAsJson())
                 history.add(
-                    LiteralMessage(
-                        ChatMessage(
-                            role = ChatRole.Tool,
-                            content = result,
-                            toolCallId = toolCall.id
-                        )
+                    ChatMessage(
+                        role = ChatRole.Tool,
+                        content = result,
+                        toolCallId = toolCall.id
                     )
                 )
                 doChatCompletion(villager, target);

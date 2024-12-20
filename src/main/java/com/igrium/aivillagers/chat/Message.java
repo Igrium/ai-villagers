@@ -6,6 +6,7 @@ import net.minecraft.nbt.NbtCompound;
 /**
  * A message that can have dynamic arguments.
  */
+@Deprecated
 public interface Message {
     /**
      * Compute a literal chat message from this message.
