@@ -37,7 +37,8 @@
     },
     "custom": {
         "cardinal-components": [
-            "ai-villagers:chat_history"
+            "ai-villagers:chat_history",
+            "ai-villagers:villager_counter"
         ]
     }
 }

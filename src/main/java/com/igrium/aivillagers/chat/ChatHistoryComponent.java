@@ -26,7 +26,8 @@ import org.slf4j.LoggerFactory;
 // TODO: Save messages in a way that keeps more of their metadata.
 public class ChatHistoryComponent implements Component {
 
-    public static final ComponentKey<ChatHistoryComponent> KEY = ComponentRegistry.getOrCreate(Identifier.of("ai-villagers:chat_history"), ChatHistoryComponent.class);
+    public static final ComponentKey<ChatHistoryComponent> KEY = ComponentRegistry.getOrCreate(
+            Identifier.of("ai-villagers:chat_history"), ChatHistoryComponent.class);
 
     public static @NotNull ChatHistoryComponent get(Entity entity) {
         return KEY.get(entity);

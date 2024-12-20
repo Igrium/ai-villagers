@@ -3,17 +3,21 @@ package com.igrium.aivillagers;
 import com.igrium.aivillagers.chat.MessageType;
 import com.igrium.aivillagers.chat.PromptManager;
 import com.igrium.aivillagers.cmd.AICommand;
+import com.igrium.aivillagers.util.VillagerCounterComponent;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.text.Text;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 
@@ -73,6 +77,15 @@ public class AIVillagers implements ModInitializer {
                 float damageTaken, boolean blocked) -> {
             if (entity instanceof VillagerEntity && damageTaken > 0 && !blocked) {
                 aiManager.getAiSubsystem().onDamage(entity, source, damageTaken);
+            }
+        });
+
+        // Villager counting
+        ServerEntityEvents.ENTITY_LOAD.register((ent, world) -> {
+            if (ent instanceof MerchantEntity && !ent.hasCustomName()) {
+                VillagerCounterComponent counter = VillagerCounterComponent.get(world.getScoreboard());
+                ent.setCustomName(Text.literal(counter.getNextNameAndIncrement()));
+                ent.setCustomNameVisible(false);
             }
         });
 
