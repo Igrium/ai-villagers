@@ -31,6 +31,7 @@
         "fabric-api": "*",
         "cardinal-components-base": "*",
         "cardinal-components-entity": "*",
+        "cardinal-components-level": "*",
         "fabric-language-kotlin": ">=1.13.0+kotlin.2.1.0"
     },
     "suggests": {

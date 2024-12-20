@@ -83,7 +83,7 @@ public class AIVillagers implements ModInitializer {
         // Villager counting
         ServerEntityEvents.ENTITY_LOAD.register((ent, world) -> {
             if (ent instanceof MerchantEntity && !ent.hasCustomName()) {
-                VillagerCounterComponent counter = VillagerCounterComponent.get(world.getScoreboard());
+                VillagerCounterComponent counter = VillagerCounterComponent.get(world.getServer());
                 ent.setCustomName(Text.literal(counter.getNextNameAndIncrement()));
                 ent.setCustomNameVisible(false);
             }

@@ -6,7 +6,9 @@ import com.igrium.aivillagers.chat.Message;
 import com.igrium.aivillagers.chat.MessageType;
 import com.igrium.aivillagers.chat.ChatHistoryComponent;
 import com.igrium.aivillagers.gpt.ChatMessagesKt;
+import com.igrium.aivillagers.util.VillagerCounterComponent;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
@@ -41,10 +43,17 @@ public class AICommand {
                     argument("target", EntityArgumentType.entity()).executes(AICommand::clearAiHistory)
                 )
             )
+        ).then(
+            literal("villagercount").then(
+                literal("get").executes(AICommand::getCounter)
+            ).then(
+                literal("set").then(
+                    argument("index", IntegerArgumentType.integer(0)).executes(AICommand::setCounter)
+                )
+            )
         ));
 
     }
-
 
     private static int doAiHistory(CommandContext<ServerCommandSource> context, boolean direct) throws CommandSyntaxException {
         Entity ent = EntityArgumentType.getEntity(context, "target");
@@ -98,5 +107,19 @@ public class AICommand {
             throw NO_HISTORY.create();
         }
         return history;
+    }
+
+    private static int getCounter(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        VillagerCounterComponent counter = VillagerCounterComponent.get(context.getSource().getServer());
+        context.getSource().sendFeedback(() -> Text.literal("The next villager spawned will be " + counter.getNextName()), false);
+        return counter.getCurrentIndex();
+    }
+
+    private static int setCounter(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        int index = IntegerArgumentType.getInteger(context, "index");
+        VillagerCounterComponent counter = VillagerCounterComponent.get(context.getSource().getServer());
+        counter.setCurrentIndex(index);
+        context.getSource().sendFeedback(() -> Text.literal("The next villager spawned will be " + counter.getNextName() + ". May cause duplicates!"), false);
+        return 0;
     }
 }

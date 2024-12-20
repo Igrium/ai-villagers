@@ -5,6 +5,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.WorldProperties;
 import org.jetbrains.annotations.Nullable;
 import org.ladysnake.cca.api.v3.component.Component;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
@@ -18,29 +19,28 @@ public class VillagerCounterComponent implements Component {
     public static final ComponentKey<VillagerCounterComponent> KEY = ComponentRegistry.getOrCreate(
             Identifier.of("ai-villagers:villager_counter"), VillagerCounterComponent.class);
 
-    public VillagerCounterComponent(Scoreboard scoreboard, @Nullable MinecraftServer minecraftServer) {
-
-    }
-
-    public static VillagerCounterComponent get(Scoreboard scoreboard) {
-        return KEY.get(scoreboard);
+    public static VillagerCounterComponent get(WorldProperties level) {
+        return KEY.get(level);
     }
 
     public static VillagerCounterComponent get(MinecraftServer server) {
-        return KEY.get(server.getScoreboard());
+        return KEY.get(server.getSaveProperties());
     }
 
     // Start at Villager #5
     int currentIndex = 5;
 
+    public VillagerCounterComponent(WorldProperties level) {
+    }
+
     @Override
     public void readFromNbt(NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
-        nbtCompound.putInt("currentIndex", currentIndex);
+        this.currentIndex = nbtCompound.getShort("currentIndex");
     }
 
     @Override
     public void writeToNbt(NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
-        this.currentIndex = nbtCompound.getShort("currentIndex");
+        nbtCompound.putInt("currentIndex", currentIndex);
     }
 
     public int getCurrentIndex() {
