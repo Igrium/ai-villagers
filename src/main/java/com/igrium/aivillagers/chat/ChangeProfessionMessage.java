@@ -1,7 +1,6 @@
 package com.igrium.aivillagers.chat;
 
 import com.aallam.openai.api.chat.ChatMessage;
-import com.igrium.aivillagers.chat.prompts.PromptManager;
 import com.igrium.aivillagers.gpt.ChatHistoryComponent;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;

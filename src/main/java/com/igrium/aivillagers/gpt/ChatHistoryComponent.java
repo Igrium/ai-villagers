@@ -70,6 +70,9 @@ public class ChatHistoryComponent implements Component {
 
     private final InitialPromptMessage initialPrompt = new InitialPromptMessage();
 
+    public InitialPromptMessage getInitialPrompt() {
+        return initialPrompt;
+    }
 
     /**
      * Compile a list of chat messages from the message history.

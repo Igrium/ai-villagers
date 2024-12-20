@@ -1,15 +1,19 @@
 package com.igrium.aivillagers;
 
 import com.igrium.aivillagers.chat.MessageType;
-import com.igrium.aivillagers.chat.prompts.PromptManager;
+import com.igrium.aivillagers.chat.PromptManager;
+import com.igrium.aivillagers.cmd.AICommand;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.resource.ResourceType;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 
@@ -59,6 +63,9 @@ public class AIVillagers implements ModInitializer {
         }
 
         promptManager = new PromptManager();
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(promptManager);
+
+        CommandRegistrationCallback.EVENT.register(AICommand::register);
 
         ServerMessageEvents.CHAT_MESSAGE.register(ChatListeningSubsystem::onChatMessage);
 

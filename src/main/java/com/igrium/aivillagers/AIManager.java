@@ -9,9 +9,9 @@ import net.minecraft.server.MinecraftServer;
 
 public class AIManager {
 
-    private ListeningSubsystem listeningSubsystem;
-    private AISubsystem aiSubsystem;
-    private SpeechSubsystem speechSubsystem;
+    private final ListeningSubsystem listeningSubsystem;
+    private final AISubsystem aiSubsystem;
+    private final SpeechSubsystem speechSubsystem;
 
     public ListeningSubsystem getListeningSubsystem() {
         return listeningSubsystem;
