@@ -3,7 +3,7 @@ package com.igrium.aivillagers;
 import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
 import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
 
-import com.igrium.aivillagers.gpt.ChatHistoryComponent;
+import com.igrium.aivillagers.chat.ChatHistoryComponent;
 
 import net.minecraft.entity.passive.MerchantEntity;
 

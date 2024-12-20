@@ -1,13 +1,9 @@
-package com.igrium.aivillagers.gpt;
+package com.igrium.aivillagers.chat;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 import com.aallam.openai.api.chat.ChatMessage;
-import com.igrium.aivillagers.chat.ChangeProfessionMessage;
-import com.igrium.aivillagers.chat.InitialPromptMessage;
-import com.igrium.aivillagers.chat.Message;
-import com.igrium.aivillagers.chat.MessageType;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;

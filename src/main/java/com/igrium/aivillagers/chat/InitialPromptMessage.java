@@ -1,7 +1,7 @@
 package com.igrium.aivillagers.chat;
 
 import com.aallam.openai.api.chat.ChatMessage;
-import com.igrium.aivillagers.gpt.ChatHistoryComponent;
+import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.village.VillagerProfession;
 
@@ -30,7 +30,13 @@ public class InitialPromptMessage implements Message {
     }
 
     private VillagerProfession getOriginalProfession(ChatHistoryComponent history) {
-        return history.getOriginalProfession().orElse(VillagerProfession.NONE);
+        return history.getOriginalProfession().orElseGet(() -> {
+            if (history.getEntity() instanceof VillagerEntity e) {
+                return e.getVillagerData().getProfession();
+            } else {
+                return VillagerProfession.NONE;
+            }
+        });
     }
 
     @Override

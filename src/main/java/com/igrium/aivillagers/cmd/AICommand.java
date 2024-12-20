@@ -4,10 +4,9 @@ import static net.minecraft.server.command.CommandManager.*;
 
 import com.igrium.aivillagers.chat.Message;
 import com.igrium.aivillagers.chat.MessageType;
-import com.igrium.aivillagers.gpt.ChatHistoryComponent;
+import com.igrium.aivillagers.chat.ChatHistoryComponent;
 import com.igrium.aivillagers.gpt.ChatMessagesKt;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
@@ -88,7 +87,7 @@ public class AICommand {
 
         messages.clear();
         context.getSource().sendFeedback(
-                () -> Text.literal("Cleared " + numMessages + " from ").append(ent.getDisplayName()), false);
+                () -> Text.literal("Cleared " + numMessages + " messages from ").append(ent.getDisplayName()), false);
 
         return numMessages;
     }

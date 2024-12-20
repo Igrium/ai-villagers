@@ -3,7 +3,6 @@ package com.igrium.aivillagers.chat;
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
 import com.igrium.aivillagers.AIVillagers;
-import com.igrium.aivillagers.gpt.ChatHistoryComponent;
 import com.igrium.aivillagers.util.VillagerUtils;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.entity.passive.VillagerEntity;
@@ -126,10 +125,12 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
         ST st = new ST(message);
 
         st.add("entity", language.get(chatHistory.getEntity().getType().getTranslationKey(), "villager"));
+        st.add("name", chatHistory.getEntity().getDisplayName().getString());
 
         VillagerProfession prof = villager != null ? villager.getVillagerData().getProfession()
                 : chatHistory.getOriginalProfession().orElse(VillagerProfession.NONE);
         st.add("profession", VillagerUtils.getProfessionName(prof));
+
 
         return st.render();
     }
@@ -141,7 +142,7 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
     private static class PromptJson {
         public String basePrompt = "";
         public final Map<String, ProfessionPrompt> professions = new HashMap<>();
-        public String fallback = "";
+        public ProfessionPrompt fallback = new ProfessionPrompt("", "");
 
         public void append(PromptJson other) {
             if (other.basePrompt != null) {
@@ -167,6 +168,9 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
             }
             manager.professionPrompts.clear();
             manager.professionPrompts.putAll(prompts);
+
+            manager.basePrompt = this.basePrompt;
+            manager.fallbackProfessionPrompt = fallback;
         }
     }
 
