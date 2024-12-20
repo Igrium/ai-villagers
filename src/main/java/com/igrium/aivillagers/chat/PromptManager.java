@@ -131,8 +131,22 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
                 : chatHistory.getOriginalProfession().orElse(VillagerProfession.NONE);
         st.add("profession", VillagerUtils.getProfessionName(prof));
 
+        // Check if it's going to be here to avoid recursion when calculating professionPrompt
+        if (message.contains("<professionPrompt>")) {
+            st.add("professionPrompt", getProfessionPrompt(getOriginalProfession(chatHistory), false));
+        }
 
         return st.render();
+    }
+
+    private VillagerProfession getOriginalProfession(ChatHistoryComponent history) {
+        return history.getOriginalProfession().orElseGet(() -> {
+            if (history.getEntity() instanceof VillagerEntity e) {
+                return e.getVillagerData().getProfession();
+            } else {
+                return VillagerProfession.NONE;
+            }
+        });
     }
 
     // DATAPACK LOADING
@@ -171,6 +185,7 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
 
             manager.basePrompt = this.basePrompt;
             manager.fallbackProfessionPrompt = fallback;
+
         }
     }
 

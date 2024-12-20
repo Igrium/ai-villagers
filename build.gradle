@@ -40,9 +40,55 @@ dependencies {
 	modImplementation include("org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cca_version}");
 
 	implementation include("com.aallam.openai:openai-client:3.8.2")
-	implementation "io.ktor:ktor-client-java:2.3.12"
+//	implementation "io.ktor:ktor-client-okhttp-jvm:2.3.12"
+	implementation include("io.ktor:ktor-client-java:2.3.12")
+
 
 	implementation include("org.antlr:ST4:4.3.4")
+	include("org.antlr:antlr-runtime:3.5.3");
+
+	// Include transitive dependencies
+	include("com.aallam.openai:openai-client:3.8.2")
+	include("com.aallam.openai:openai-client-jvm:3.8.2")
+	include("com.aallam.openai:openai-core:3.8.2")
+	include("com.aallam.openai:openai-core-jvm:3.8.2")
+
+	include("com.squareup.okio:okio:3.4.0")
+	include("com.squareup.okio:okio-jvm:3.4.0")
+	include("io.ktor:ktor-client-core:2.3.12")
+	include("io.ktor:ktor-client-core-jvm:2.3.12")
+	include("io.ktor:ktor-http:2.3.12")
+	include("io.ktor:ktor-http-jvm:2.3.12")
+	include("io.ktor:ktor-utils:2.3.12")
+	include("io.ktor:ktor-utils-jvm:2.3.12")
+	include("io.ktor:ktor-io:2.3.12")
+	include("io.ktor:ktor-io-jvm:2.3.12")
+
+	include("io.ktor:ktor-events:2.3.12")
+	include("io.ktor:ktor-events-jvm:2.3.12")
+
+	include("io.ktor:ktor-websocket-serialization:2.3.12")
+	include("io.ktor:ktor-websocket-serialization-jvm:2.3.12")
+	include("io.ktor:ktor-serialization:2.3.12")
+	include("io.ktor:ktor-serialization-jvm:2.3.12")
+	include("io.ktor:ktor-websockets:2.3.12")
+	include("io.ktor:ktor-websockets-jvm:2.3.12")
+
+	include("io.ktor:ktor-client-logging:2.3.12")
+	include("io.ktor:ktor-client-logging-jvm:2.3.12")
+	include("io.ktor:ktor-client-auth:2.3.12")
+	include("io.ktor:ktor-client-auth-jvm:2.3.12")
+	include("io.ktor:ktor-client-content-negotiation:2.3.12")
+	include("io.ktor:ktor-client-content-negotiation-jvm:2.3.12")
+
+	include("io.ktor:ktor-serialization-kotlinx-json:2.3.2")
+	include("io.ktor:ktor-serialization-kotlinx-json-jvm:2.3.2")
+	include("io.ktor:ktor-serialization-kotlinx:2.3.12")
+	include("io.ktor:ktor-serialization-kotlinx-jvm:2.3.2")
+
+	include("io.ktor:ktor-client-java:2.3.12")
+	include("io.ktor:ktor-client-java-jvm:2.3.12")
+
 
 	implementation include(project(':playht-api'))
 

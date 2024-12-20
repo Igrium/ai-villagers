@@ -18,25 +18,12 @@ public class InitialPromptMessage implements Message {
         }
     };
 
-    private static final String PROMPT = "You are a Minecraft villager like the ones from Villager News. Villagers speak casually, are somewhat stubborn, and charge exorbitant prices. Short phrases";
-
     @Override
     public ChatMessage toChatMessage(ChatHistoryComponent history) {
         PromptManager promptManager = PromptManager.getInstance();
-        String prompt = promptManager.getBasePrompt() + " "
-                + promptManager.getProfessionPrompt(getOriginalProfession(history), false);
+        String prompt = promptManager.getBasePrompt();
 
         return ChatMessage.Companion.System(promptManager.applyTemplate(history, prompt), null);
-    }
-
-    private VillagerProfession getOriginalProfession(ChatHistoryComponent history) {
-        return history.getOriginalProfession().orElseGet(() -> {
-            if (history.getEntity() instanceof VillagerEntity e) {
-                return e.getVillagerData().getProfession();
-            } else {
-                return VillagerProfession.NONE;
-            }
-        });
     }
 
     @Override
