@@ -2,9 +2,6 @@
 package com.igrium.aivillagers.gpt
 
 import com.aallam.openai.api.chat.*
-import com.igrium.aivillagers.chat.ChatHistoryComponent
-import com.igrium.aivillagers.chat.Message
-import com.igrium.aivillagers.chat.MessageType
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.nbt.NbtList
@@ -19,14 +16,6 @@ fun ChatMessage.toSimpleString(): String {
     return "Role: ${this.role.role}, Content: $contentStr"
 }
 
-/**
- * Convert a `Message` to a human-readable string.
- * @param history The chat history component to use to compile the message.
- */
-fun Message.toSimpleString(history: ChatHistoryComponent): String {
-    val id = MessageType.REGISTRY.inverse()[this.type];
-    return "$id: (${this.toChatMessage(history).toSimpleString()})"
-}
 
 fun ChatMessage.toNbt(): NbtCompound {
     val nbt = NbtCompound()

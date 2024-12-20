@@ -4,8 +4,6 @@ import com.aallam.openai.api.chat.*
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
-import com.igrium.aivillagers.chat.LiteralMessage
-import com.igrium.aivillagers.chat.Message
 import com.igrium.aivillagers.subsystems.impl.GptAISubsystem
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.future

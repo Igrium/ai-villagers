@@ -56,7 +56,7 @@ public class ChatHistoryComponent implements Component {
     public List<ChatMessage> prepareChatHistory() {
         synchronized (chatHistory) {
             if (chatHistory.isEmpty()) {
-                chatHistory.add(PromptManager.getInstance().getInitialPromptMessage(this));
+                chatHistory.add(PromptManager.getInstance().getPrompts().getInitialPromptMsg(this));
             }
             return chatHistory;
         }

@@ -1,6 +1,5 @@
 package com.igrium.aivillagers;
 
-import com.igrium.aivillagers.chat.MessageType;
 import com.igrium.aivillagers.chat.PromptManager;
 import com.igrium.aivillagers.cmd.AICommand;
 import com.igrium.aivillagers.util.VillagerCounterComponent;
@@ -57,7 +56,6 @@ public class AIVillagers implements ModInitializer {
     public void onInitialize() {
         instance = this;
         SubsystemTypes.registerDefaults();
-        MessageType.registerDefaults();
 
         config = AIVillagersConfig.load(FabricLoader.getInstance().getConfigDir().resolve("ai_villagers.json"));
         try {

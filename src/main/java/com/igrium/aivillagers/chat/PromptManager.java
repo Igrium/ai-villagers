@@ -1,25 +1,19 @@
 package com.igrium.aivillagers.chat;
 
-import com.aallam.openai.api.chat.ChatMessage;
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
 import com.igrium.aivillagers.AIVillagers;
-import com.igrium.aivillagers.util.VillagerUtils;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.registry.Registries;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Language;
 import net.minecraft.village.VillagerProfession;
 import org.jetbrains.annotations.NotNull;
-import org.stringtemplate.v4.ST;
 
 import java.io.Reader;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class PromptManager implements SimpleSynchronousResourceReloadListener {
 
@@ -39,7 +33,10 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
      * @param switched The prompt to use when a villager has switched to a profession.
      */
     @JsonAdapter(ProfessionPromptSerializer.class)
-    public record ProfessionPrompt(String initial, String switched) {
+    public record ProfessionPrompt(@NotNull String initial, @NotNull String switched) {
+        public ProfessionPrompt(String prompt) {
+            this(prompt, prompt);
+        }
     }
 
     private static class ProfessionPromptSerializer implements JsonSerializer<ProfessionPrompt>, JsonDeserializer<ProfessionPrompt> {
@@ -72,80 +69,14 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
         }
     }
 
-    private String basePrompt;
-    private final Map<VillagerProfession, ProfessionPrompt> professionPrompts = new ConcurrentHashMap<>();
-    private ProfessionPrompt fallbackProfessionPrompt = new ProfessionPrompt(
-            "You are a <profession>.",
-            "You are now a <profession>."
-    );
+    private final Prompts prompts = new Prompts();
 
-    /**
-     * Get the templated base prompt that's used for defining the villager's identity.
-     * @return Templated base prompt.
-     */
-    public String getBasePrompt() {
-        return basePrompt;
+    public Prompts getPrompts() {
+        return prompts;
     }
 
-    /**
-     * Get the initial prompt to use for defining a villager's identity.
-     * @param history Villager's chat history component.
-     * @return Initial prompt with templating applied.
-     */
-    public ChatMessage getInitialPromptMessage(ChatHistoryComponent history) {
-        return ChatMessage.Companion.System(applyTemplate(history, getBasePrompt()), null);
-    }
-
-    public ProfessionPrompt getFallbackProfessionPrompt() {
-        return fallbackProfessionPrompt;
-    }
-
-    public void setFallbackProfessionPrompt(ProfessionPrompt fallbackProfessionPrompt) {
-        this.fallbackProfessionPrompt = fallbackProfessionPrompt;
-    }
-
-    public Map<VillagerProfession, ProfessionPrompt> getProfessionPrompts() {
-        return professionPrompts;
-    }
-
-    public ProfessionPrompt getProfessionPrompt(VillagerProfession profession) {
-        return professionPrompts.getOrDefault(profession, fallbackProfessionPrompt);
-    }
-
-    public String getProfessionPrompt(VillagerProfession profession, boolean switched) {
-        ProfessionPrompt prompt = professionPrompts.getOrDefault(profession, fallbackProfessionPrompt);
-        String message = switched ? prompt.switched : prompt.initial;
-        return message.replace("<profession>", VillagerUtils.getProfessionName(profession));
-    }
-
-    /**
-     * Apply all the relevant values from a string template to a prompt.
-     *
-     * @param chatHistory The chat history of the villager this is for.
-     * @param message     The prompt.
-     * @return The prompt with all the values applied.
-     */
-    public String applyTemplate(@NotNull ChatHistoryComponent chatHistory, String message) {
-        VillagerEntity villager = null;
-        if (chatHistory.getEntity() instanceof VillagerEntity v) {
-            villager = v;
-        }
-
-        Language language = Language.getInstance();
-        ST st = new ST(message);
-
-        st.add("entity", language.get(chatHistory.getEntity().getType().getTranslationKey(), "villager"));
-        st.add("name", chatHistory.getEntity().getDisplayName().getString());
-
-        VillagerProfession prof = villager != null ? villager.getVillagerData().getProfession() : VillagerProfession.NONE;
-        st.add("profession", VillagerUtils.getProfessionName(prof));
-
-        // Check if it's going to be here to avoid recursion when calculating professionPrompt
-        if (message.contains("<professionPrompt>")) {
-            st.add("professionPrompt", getProfessionPrompt(prof, false));
-        }
-
-        return st.render();
+    public String applyTemplate(ChatHistoryComponent chatHistoryComponent, String message) {
+        return prompts.applyTemplate(chatHistoryComponent, message);
     }
 
     // DATAPACK LOADING
@@ -155,6 +86,8 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
         public String basePrompt = "";
         public final Map<String, ProfessionPrompt> professions = new HashMap<>();
         public ProfessionPrompt fallback = new ProfessionPrompt("", "");
+
+        public String nameChange = "";
 
         public void append(PromptJson other) {
             if (other.basePrompt != null) {
@@ -167,7 +100,10 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
         }
 
         public void apply(PromptManager manager) {
-            Map<VillagerProfession, ProfessionPrompt> prompts = new HashMap<>(professions.size());
+            var prompts = manager.getPrompts();
+
+            // Resolve villager professions out of IDs.
+            Map<VillagerProfession, ProfessionPrompt> profPrompts = new HashMap<>(professions.size());
             for (var entry : professions.entrySet()) {
                 Identifier id = Identifier.tryParse(entry.getKey());
                 if (!Registries.VILLAGER_PROFESSION.containsId(id)) {
@@ -176,13 +112,16 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
                 }
 
                 VillagerProfession profession = Registries.VILLAGER_PROFESSION.get(id);
-                prompts.put(profession, entry.getValue());
+                profPrompts.put(profession, entry.getValue());
             }
-            manager.professionPrompts.clear();
-            manager.professionPrompts.putAll(prompts);
 
-            manager.basePrompt = this.basePrompt;
-            manager.fallbackProfessionPrompt = fallback;
+            prompts.setInitialPrompt(basePrompt);
+
+            prompts.getProfessionPrompts().clear();
+            prompts.getProfessionPrompts().putAll(profPrompts);
+            prompts.setFallbackProfessionPrompt(fallback);
+
+            prompts.setNameChangePrompt(nameChange);
 
         }
     }
