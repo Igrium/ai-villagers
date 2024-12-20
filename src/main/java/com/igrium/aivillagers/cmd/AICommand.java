@@ -5,6 +5,7 @@ import static net.minecraft.server.command.CommandManager.*;
 import com.igrium.aivillagers.chat.Message;
 import com.igrium.aivillagers.chat.MessageType;
 import com.igrium.aivillagers.gpt.ChatHistoryComponent;
+import com.igrium.aivillagers.gpt.ChatMessagesKt;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -55,8 +56,6 @@ public class AICommand {
             throw NO_HISTORY.create();
         }
         int i = 0;
-        context.getSource().sendFeedback(() -> NbtHelper.toPrettyPrintedText(
-                MessageType.saveMessage(history.getInitialPrompt())), false);
         
         List<Message> fullMessages = new ArrayList<>(messages.size() + 1);
         fullMessages.add(history.getInitialPrompt());
@@ -65,17 +64,11 @@ public class AICommand {
         }
         for (var message : fullMessages) {
             if (direct) {
-                context.getSource().sendFeedback(() -> NbtHelper.toPrettyPrintedText(MessageType.saveMessage(message)), false);
-            } else {
-                String content = message.toChatMessage(history).getContent();
-                if (content == null) {
-                    content = "[no message content]";
-                }
-                // WHY does sendFeedback need a lambda???
-                var finalContent = content;
                 context.getSource().sendFeedback(
-                        () -> Text.literal(MessageType.REGISTRY.inverse().get(message.getType()) + ": " + finalContent),
-                        false);
+                        () -> NbtHelper.toPrettyPrintedText(MessageType.saveMessage(message)), false);
+            } else {
+                context.getSource().sendFeedback(
+                        () -> Text.literal(ChatMessagesKt.toSimpleString(message, history) + "\n"), false);
             }
             i++;
         }
