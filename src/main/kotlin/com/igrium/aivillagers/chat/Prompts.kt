@@ -3,6 +3,7 @@ package com.igrium.aivillagers.chat
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.core.Role
 import com.igrium.aivillagers.chat.PromptManager.ProfessionPrompt
+import com.igrium.aivillagers.util.SimpleTemplate
 import com.igrium.aivillagers.util.VillagerUtils
 import net.minecraft.entity.passive.VillagerEntity
 import net.minecraft.util.Language
@@ -75,24 +76,20 @@ class Prompts {
      * @return The generated message.
      */
     fun applyTemplate(chatHistory: ChatHistoryComponent, message: String): String {
-        val ent = chatHistory.entity!!;
-        val villager = if (ent is VillagerEntity) ent else null
 
         val language = Language.getInstance()
 
-        val st = ST(message)
+        val st = SimpleTemplate()
 
-        st.add("entity", language.get(chatHistory.entity.type.translationKey, "villager"))
-        st.add("name", chatHistory.entity.displayName?.string)
+        st.add("entity", { language.get(chatHistory.entity.type.translationKey, "villager") })
+        st.add("name", { chatHistory.entity.displayName?.string })
 
-        val prof = chatHistory.getProfession()
-        st.add("profession", VillagerUtils.getProfessionName(prof))
+        st.add("profession", { VillagerUtils.getProfessionName(chatHistory.getProfession()) })
 
-        // Check if it's going to be here first to avoid recursion when calculating professionPrompt.
-        if (message.contains("<professionPrompt>")) {
-            st.add("professionPrompt", getProfessionPromptContent(chatHistory))
-        }
+        // Won't get called unless professionPrompt is there, so no recursion issues.
+        st.add("professionPrompt", { getProfessionPromptContent(chatHistory) })
 
-        return st.render()
+
+        return st.render(message)
     }
 }
