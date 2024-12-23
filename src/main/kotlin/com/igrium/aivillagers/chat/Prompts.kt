@@ -5,6 +5,7 @@ import com.aallam.openai.api.core.Role
 import com.igrium.aivillagers.chat.PromptManager.ProfessionPrompt
 import com.igrium.aivillagers.util.SimpleTemplate
 import com.igrium.aivillagers.util.VillagerUtils
+import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.passive.VillagerEntity
 import net.minecraft.util.Language
 import net.minecraft.village.VillagerProfession
@@ -34,8 +35,14 @@ class Prompts {
     fun getInitialPromptMsg(history: ChatHistoryComponent): ChatMessage {
         return ChatMessage(
             role = Role.System,
-            content = applyTemplate(history, initialPrompt)
+            content = calcInitialPrompt(history)
         )
+    }
+
+    fun calcInitialPrompt(history: ChatHistoryComponent): String {
+        val ent = history.entity;
+        val baby = if (ent is LivingEntity) ent.isBaby else false;
+        return if (baby) applyTemplate(history, babyPrompt) else applyTemplate(history, initialPrompt);
     }
 
     /**
@@ -44,6 +51,8 @@ class Prompts {
     val professionPrompts: Map<VillagerProfession, ProfessionPrompt> = ConcurrentHashMap();
 
     var fallbackProfessionPrompt = ProfessionPrompt("You are unemployed.")
+
+    var babyPrompt: String = "You are a kid.";
 
     @JvmOverloads
     fun getProfessionPromptContent(history: ChatHistoryComponent, switched: Boolean = false): String {

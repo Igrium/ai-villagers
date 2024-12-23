@@ -84,6 +84,7 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
 
     private static class PromptJson {
         public String basePrompt = "";
+        public String babyPrompt = "";
         public final Map<String, ProfessionPrompt> professions = new HashMap<>();
         public ProfessionPrompt professionFallback = new ProfessionPrompt("", "");
 
@@ -96,6 +97,9 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
             this.professions.putAll(other.professions);
             if (other.professionFallback != null) {
                 this.professionFallback = other.professionFallback;
+            }
+            if (other.babyPrompt != null) {
+                this.babyPrompt = other.babyPrompt;
             }
         }
 
@@ -116,6 +120,7 @@ public class PromptManager implements SimpleSynchronousResourceReloadListener {
             }
 
             prompts.setInitialPrompt(basePrompt);
+            prompts.setBabyPrompt(babyPrompt);
 
             prompts.getProfessionPrompts().clear();
             prompts.getProfessionPrompts().putAll(profPrompts);
