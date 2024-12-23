@@ -90,6 +90,14 @@ public class SpeechAudioManager implements Closeable {
         return new StreamingAudioPlayer(channel, audio).audioPlayer;
     }
 
+    /**
+     * Play audio from an entity.
+     *
+     * @param entity Entity to play from.
+     * @param audio  An input stream with the audio data.
+     * @return The audio player with the audio.
+     * @implNote The input stream will automatically close once the audio is done.
+     */
     public AudioPlayer playAudioFromEntity(Entity entity, InputStream audio) {
         try {
             // EntityAudioChannel channel = getPlugin().getServerApi().createEntityAudioChannel(UUID.randomUUID(),

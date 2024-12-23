@@ -41,5 +41,6 @@ public class SubsystemTypes {
 
         SPEECH_REGISTRY.put("chat", ChatSpeechSubsystem.TYPE);
         SPEECH_REGISTRY.put("playht", PlayHTSpeechSubsystem.TYPE);
+        SPEECH_REGISTRY.put("openai", OpenAISpeechSubsystem.TYPE);
     }
 }
