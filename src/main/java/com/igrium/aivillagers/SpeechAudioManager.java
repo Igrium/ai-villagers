@@ -74,7 +74,9 @@ public class SpeechAudioManager implements Closeable {
      */
     public AudioPlayer streamAudio(AudioChannel channel, InputStream audio)
             throws UnsupportedAudioFileException, IOException {
+        long time = System.currentTimeMillis();
         AudioInputStream audioStream = AudioSystem.getAudioInputStream(new BufferedInputStream(audio));
+        LOGGER.info("Took {}ms to initialize audio input stream", System.currentTimeMillis() - time);
         return streamAudio(channel, audioStream);
     }
 

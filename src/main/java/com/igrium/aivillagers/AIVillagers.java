@@ -57,7 +57,8 @@ public class AIVillagers implements ModInitializer {
         instance = this;
         SubsystemTypes.registerDefaults();
 
-        config = AIVillagersConfig.load(FabricLoader.getInstance().getConfigDir().resolve("ai_villagers.json"));
+//        config = AIVillagersConfig.load(FabricLoader.getInstance().getConfigDir().resolve("ai_villagers.json"));
+        config = AIVillagersConfig.loadConfig();
         try {
             aiManager = new AIManager(config);
         } catch (Exception e) {
