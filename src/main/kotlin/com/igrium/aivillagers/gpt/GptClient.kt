@@ -23,7 +23,7 @@ class GptClient @JvmOverloads constructor(
     private val aiSubsystem: GptAISubsystem,
     private val apiKey: String,
     private val timeout: Int = 60000,
-    private val modelName: String = "gpt-4o-mini"
+    private val modelName: String = "gpt-4o"
 ) {
     private val availableFunctions = Collections.synchronizedMap(mutableMapOf<String, ToolCallFunction>(
         "offerTrade" to offerTradeFunction

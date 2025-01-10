@@ -92,7 +92,7 @@ dependencies {
 
 
 	implementation include(project(':playht-api'))
-
+	implementation include(project(':elevenlabs-api'))
 }
 
 processResources {
