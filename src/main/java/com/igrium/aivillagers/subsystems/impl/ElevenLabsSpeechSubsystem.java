@@ -1,10 +1,12 @@
 package com.igrium.aivillagers.subsystems.impl;
 
 import com.igrium.aivillagers.AIManager;
+import com.igrium.aivillagers.SpeechAudioManager;
 import com.igrium.aivillagers.speech.ElevenLabsSpeechClient;
 import com.igrium.aivillagers.subsystems.SubsystemType;
 import org.jetbrains.annotations.Nullable;
 
+import javax.sound.sampled.AudioInputStream;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 
@@ -34,7 +36,7 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
     }
 
     @Override
-    protected CompletableFuture<InputStream> doTextToSpeech(String message) {
-        return client.streamTTS(message);
+    protected CompletableFuture<AudioInputStream> doTextToSpeech(String message) {
+        return client.streamTTS(message).thenApply(SpeechAudioManager::getAudioInputStream);
     }
 }

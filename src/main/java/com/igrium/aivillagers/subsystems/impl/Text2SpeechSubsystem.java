@@ -7,6 +7,7 @@ import net.minecraft.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sound.sampled.AudioInputStream;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 
@@ -44,5 +45,5 @@ public abstract class Text2SpeechSubsystem implements SpeechSubsystem {
      * The future should complete as a response is received from the API,
      * and the input stream will be filled as the audio is generated.
      */
-    protected abstract CompletableFuture<InputStream> doTextToSpeech(String message);
+    protected abstract CompletableFuture<AudioInputStream> doTextToSpeech(String message);
 }

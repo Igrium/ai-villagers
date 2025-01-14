@@ -93,6 +93,19 @@ public class SpeechAudioManager implements Closeable {
     }
 
     /**
+     * A helper method to create an audio input stream from an input stream as a one-liner.
+     * @param in Input stream.
+     * @return The audio input stream.
+     */
+    public static AudioInputStream getAudioInputStream(InputStream in) {
+        try {
+            return AudioSystem.getAudioInputStream(new BufferedInputStream(in));
+        } catch (UnsupportedAudioFileException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Play audio from an entity.
      *
      * @param entity Entity to play from.
@@ -100,7 +113,7 @@ public class SpeechAudioManager implements Closeable {
      * @return The audio player with the audio.
      * @implNote The input stream will automatically close once the audio is done.
      */
-    public AudioPlayer playAudioFromEntity(Entity entity, InputStream audio) {
+    public AudioPlayer playAudioFromEntity(Entity entity, AudioInputStream audio) {
         try {
             // EntityAudioChannel channel = getPlugin().getServerApi().createEntityAudioChannel(UUID.randomUUID(),
             //         getPlugin().getServerApi().fromEntity(entity));

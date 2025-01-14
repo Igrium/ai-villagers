@@ -1,5 +1,6 @@
 package com.igrium.aivillagers.subsystems.impl;
 
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 
@@ -16,6 +17,9 @@ import com.igrium.playht.SpeechStreamRequest.OutputFormat;
 import com.igrium.playht.SpeechStreamRequest.VoiceEngine;
 
 import net.minecraft.entity.Entity;
+
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
 
 public class PlayHTSpeechSubsystem extends Text2SpeechSubsystem {
 
@@ -46,12 +50,14 @@ public class PlayHTSpeechSubsystem extends Text2SpeechSubsystem {
     }
 
     @Override
-    protected CompletableFuture<InputStream> doTextToSpeech(String message) {
+    protected CompletableFuture<AudioInputStream> doTextToSpeech(String message) {
         return new SpeechStreamRequest()
                 .text(message)
                 .outputFormat(OutputFormat.WAV)
                 .voice(voice)
                 .voiceEngine(VoiceEngine.PLAYHT2)
-                .send(playHT);
+                .send(playHT).thenApply(
+                        SpeechAudioManager::getAudioInputStream
+                );
     }
 }
