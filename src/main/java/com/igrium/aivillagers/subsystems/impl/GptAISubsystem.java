@@ -9,6 +9,7 @@ import com.igrium.aivillagers.subsystems.SubsystemType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +46,14 @@ public class GptAISubsystem implements AISubsystem {
 
     @Override
     public void onSpokenTo(Entity villager, ServerPlayerEntity player, String message) {
+        long startTime = Util.getMeasuringTimeMs();
         client.sendMessage(villager, player, message).whenComplete((msg, e) -> {
            if (e != null) {
                LOGGER.error("Error getting message from OpenAI", e);
            } else {
-               LOGGER.info(msg);
+               LOGGER.info("Received response from OpenAI in {}ms.", Util.getMeasuringTimeMs() - startTime);
+//               LOGGER.info(msg);
+//               :
            }
         });
     }
@@ -62,6 +66,7 @@ public class GptAISubsystem implements AISubsystem {
      * @param message  What to say.
      */
     public void doSpeak(Entity villager, Entity target, String message) {
+        LOGGER.info("{}: {}", villager.getNameForScoreboard(), message);
         aiManager.getSpeechSubsystem().speak(villager, message);
     }
 

@@ -2,7 +2,9 @@ package com.igrium.aivillagers.gpt
 
 import com.aallam.openai.api.chat.*
 import com.aallam.openai.api.http.Timeout
+import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.model.ModelId
+import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI
 import com.igrium.aivillagers.subsystems.impl.GptAISubsystem
 import kotlinx.coroutines.*
@@ -33,7 +35,8 @@ class GptClient @JvmOverloads constructor(
 
     private val openAI = OpenAI(
         token = apiKey,
-        timeout = Timeout(socket = 60.toDuration(DurationUnit.MILLISECONDS))
+        timeout = Timeout(socket = 60.toDuration(DurationUnit.MILLISECONDS)),
+        logging = LoggingConfig(logLevel = LogLevel.None)
     )
 
     /**

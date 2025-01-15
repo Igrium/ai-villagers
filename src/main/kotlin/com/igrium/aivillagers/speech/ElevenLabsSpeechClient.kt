@@ -23,8 +23,7 @@ class ElevenLabsSpeechClient @JvmOverloads constructor(
         baseUrl = URI.create(baseUrl),
         httpClient = HttpClient.newBuilder()
             .executor(Util.getIoWorkerExecutor())
-            .build(),
-        printDebug = true
+            .build()
     )
 
     private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("OpenAI Speech Client"))
