@@ -44,7 +44,7 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
     }
 
     private static final OutputFormat FORMAT = OutputFormat.PCM_22050;
-    private static final AudioFormat AUDIO_FORMAT = new AudioFormat(22.05f, 16, 1, true, false);
+    private static final AudioFormat AUDIO_FORMAT = new AudioFormat(22500, 16, 1, true, false);
 
     private final Path debugOutput = Paths.get("debugAudio");
 

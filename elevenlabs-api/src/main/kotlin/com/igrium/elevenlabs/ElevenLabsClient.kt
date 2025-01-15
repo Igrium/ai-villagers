@@ -19,7 +19,8 @@ import java.net.http.HttpResponse.BodyHandlers
 public class ElevenLabsClient @JvmOverloads constructor(
     private val apiKey: String,
     private val baseUrl: URI = URI.create("https://api.elevenlabs.io"),
-    private val httpClient: HttpClient = HttpClient.newHttpClient()
+    private val httpClient: HttpClient = HttpClient.newHttpClient(),
+    public var printDebug: Boolean = false
 ) {
 
     public suspend fun streamTTS(
@@ -36,6 +37,11 @@ public class ElevenLabsClient @JvmOverloads constructor(
             .POST(BodyPublishers.ofString(Json.encodeToString(params)))
             .build()
 
+        if (printDebug) {
+            println("ElevenLabs Request URL: " + req.uri())
+            println("ElevenLabs Request Headers: " + req.headers())
+            println("ElevenLabs Request Content: " + Json.encodeToString(params))
+        }
         val res = httpClient.sendAsync(req, BodyHandlers.ofInputStream()).await()
         if (res.statusCode() != 200) {
             throw ElevenLabsException(url.toString(), res.statusCode());
