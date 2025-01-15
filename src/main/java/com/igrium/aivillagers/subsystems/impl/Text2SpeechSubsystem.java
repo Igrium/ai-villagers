@@ -33,6 +33,7 @@ public abstract class Text2SpeechSubsystem implements SpeechSubsystem {
                 return;
             }
             LOGGER.info("Got TTS response in {}ms", Util.getMeasuringTimeMs() - startTime);
+            LOGGER.info("AudioInputStream has {} samples.", in.getFrameLength());
             audioManager.playAudioFromEntity(entity, in);
         });
     }

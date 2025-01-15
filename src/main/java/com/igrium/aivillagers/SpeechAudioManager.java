@@ -55,7 +55,7 @@ public class SpeechAudioManager implements Closeable {
         return plugin.getServerApi();
     }
     
-    private ExecutorService audioProcessingService = new ThreadPoolExecutor(3, 10, 30, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+    private final ExecutorService audioProcessingService = new ThreadPoolExecutor(3, 10, 30, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
     public Executor getAudioProcessingService() {
         return audioProcessingService;
@@ -162,13 +162,16 @@ public class SpeechAudioManager implements Closeable {
 
         synchronized short[] getFrame() {
             try {
-                // TODO: can we find a more efficient way to clear this if array wasn't filled?
                 Arrays.fill(readBuffer, (byte) 0);
                 int read = audio.read(readBuffer);
 
                 if (read < 0) {
                     audio.close();
                     return null;
+                }
+                // Remove leftover data if end of stream
+                if (read < readBuffer.length) {
+                    Arrays.fill(readBuffer, read, readBuffer.length, (byte) 0);
                 }
                 return getApi().getAudioConverter().bytesToShorts(readBuffer);
             } catch (Exception e) {

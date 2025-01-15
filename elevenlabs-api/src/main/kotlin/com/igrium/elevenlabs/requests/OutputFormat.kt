@@ -1,4 +1,4 @@
-package com.igrium.aivillagers.com.igrium.elevenlabs.requests
+package com.igrium.elevenlabs.requests
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName

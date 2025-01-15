@@ -1,7 +1,7 @@
 package com.igrium.elevenlabs
 
-import com.igrium.aivillagers.com.igrium.elevenlabs.requests.OutputFormat
-import com.igrium.aivillagers.com.igrium.elevenlabs.requests.TTSRequest
+import com.igrium.elevenlabs.requests.OutputFormat
+import com.igrium.elevenlabs.requests.TTSRequest
 import kotlinx.coroutines.future.await
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

@@ -2,6 +2,7 @@ package com.igrium.aivillagers.subsystems.impl;
 
 import com.igrium.aivillagers.AIManager;
 import com.igrium.aivillagers.SpeechAudioManager;
+import com.igrium.aivillagers.debug.MirrorInputStream;
 import com.igrium.aivillagers.speech.OpenAISpeechClient;
 import com.igrium.aivillagers.speech.SimpleOpenAISpeechClient;
 import com.igrium.aivillagers.subsystems.SubsystemType;
@@ -10,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.sound.sampled.AudioInputStream;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 
 public class OpenAISpeechSubsystem extends Text2SpeechSubsystem {
@@ -38,6 +41,8 @@ public class OpenAISpeechSubsystem extends Text2SpeechSubsystem {
         return aiManager;
     }
 
+    private final Path debugOutput = Paths.get("debugAudio.wav");
+
     @Override
     protected CompletableFuture<AudioInputStream> doTextToSpeech(String message) {
         var req = new SimpleOpenAISpeechClient.SpeechRequest()
@@ -46,7 +51,8 @@ public class OpenAISpeechSubsystem extends Text2SpeechSubsystem {
                 .setModelId("tts-1")
                 .setResponseFormat("wav");
 
-        return client.send(req).thenApply(SpeechAudioManager::getAudioInputStream);
-//        return client.streamTextAsync(message, config.voice);
+        return client.send(req)
+//                .thenApply(in -> MirrorInputStream.createDebugMirror(in, debugOutput))
+                .thenApply(SpeechAudioManager::getAudioInputStream);
     }
 }

@@ -1,8 +1,8 @@
 package com.igrium.aivillagers.speech
 
-import com.igrium.aivillagers.com.igrium.elevenlabs.requests.OutputFormat
-import com.igrium.aivillagers.com.igrium.elevenlabs.requests.TTSRequest
 import com.igrium.elevenlabs.ElevenLabsClient
+import com.igrium.elevenlabs.requests.OutputFormat
+import com.igrium.elevenlabs.requests.TTSRequest
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,8 +28,9 @@ class ElevenLabsSpeechClient @JvmOverloads constructor(
 
     private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("OpenAI Speech Client"))
 
-    fun streamTTS(message: String): CompletableFuture<InputStream> {
-        return scope.future { client.streamTTS(TTSRequest(text = message), voiceId, OutputFormat.PCM_22050) }
+    @JvmOverloads
+    fun streamTTS(message: String, format: OutputFormat = OutputFormat.PCM_22050): CompletableFuture<InputStream> {
+        return scope.future { client.streamTTS(TTSRequest(text = message), voiceId, format) }
     }
 
 //    private suspend fun streamTTS(message: String): InputStream {
