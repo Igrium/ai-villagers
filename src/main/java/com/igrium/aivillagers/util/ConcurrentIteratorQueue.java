@@ -18,7 +18,9 @@ public class ConcurrentIteratorQueue<T> implements Iterator<T> {
             throw new IllegalStateException("Queue has been marked as complete!");
         }
         queue.add(val);
-        this.notify();
+        synchronized (this) {
+            this.notify();
+        }
     }
 
     public int size() {
@@ -44,7 +46,9 @@ public class ConcurrentIteratorQueue<T> implements Iterator<T> {
                 return null;
             }
             try {
-                this.wait();
+                synchronized (this) {
+                    this.wait();
+                }
                 return next();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

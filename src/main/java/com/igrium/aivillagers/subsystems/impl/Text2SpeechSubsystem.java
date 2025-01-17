@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.sound.sampled.AudioInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,6 +48,7 @@ public abstract class Text2SpeechSubsystem implements SpeechSubsystem {
 
     @Override
     public SpeechStream openSpeechStream(Entity entity) {
+//        return SpeechSubsystem.super.openSpeechStream(entity);
         return new Text2SpeechStream(entity);
     }
 
@@ -69,7 +71,7 @@ public abstract class Text2SpeechSubsystem implements SpeechSubsystem {
         private final StringBuilder complete = new StringBuilder();
 
         private final ConcurrentIteratorQueue<AudioInputStream> audioStreams = new ConcurrentIteratorQueue<>();
-        private final AtomicBoolean startedPlaying = new AtomicBoolean();
+        private boolean startedPlaying = false;
 
         private volatile boolean closed;
         // The number of text-to-speech jobs we're waiting on
@@ -98,30 +100,36 @@ public abstract class Text2SpeechSubsystem implements SpeechSubsystem {
             sb = new StringBuilder();
         }
 
-        void acceptStream(AudioInputStream stream, Throwable e) {
+        synchronized void acceptStream(AudioInputStream stream, Throwable e) {
             LOGGER.info("Audio stream: {}", stream);
-            if (e != null) {
-                LOGGER.error("Error downloading audio stream: ", e);
-            } else {
-                audioStreams.add(stream);
+            try {
+                if (e != null) {
+                    LOGGER.error("Error downloading audio stream: ", e);
+                } else {
+                    audioStreams.add(stream);
 
-                if (!startedPlaying.getAndSet(true)) {
-                    startPlaying();
+                    if (!startedPlaying) {
+                        startedPlaying = true;
+                        startPlaying();
+                    }
+
                 }
+                if (jobs.decrementAndGet() <= 0 && closed) {
+                    audioStreams.setComplete();
+                }
+            } catch (Exception ex) {
+                LOGGER.error("Error playing stream: ", ex);
+            }
 
-            }
-            if (jobs.decrementAndGet() <= 0 && closed) {
-                audioStreams.setComplete();
-            }
         }
 
         void startPlaying() {
+            LOGGER.info("Playing audio");
             SpeechAudioManager audioManager = SpeechAudioManager.getInstance();
             if (audioManager == null) {
                 LOGGER.error("Simple VC was not setup properly; audio will not play.");
                 return;
             }
-            LOGGER.info("Playing audio");
             audioManager.playAudioFromEntity(villager, AudioUtils.concat(SpeechAudioManager.FORMAT, audioStreams));
         }
 
