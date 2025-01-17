@@ -48,8 +48,8 @@ public abstract class Text2SpeechSubsystem implements SpeechSubsystem {
 
     @Override
     public SpeechStream openSpeechStream(Entity entity) {
-//        return SpeechSubsystem.super.openSpeechStream(entity);
-        return new Text2SpeechStream(entity);
+        return SpeechSubsystem.super.openSpeechStream(entity);
+//        return new Text2SpeechStream(entity);
     }
 
     /**

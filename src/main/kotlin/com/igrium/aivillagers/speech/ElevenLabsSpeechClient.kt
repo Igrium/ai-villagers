@@ -1,5 +1,6 @@
 package com.igrium.aivillagers.speech
 
+import com.igrium.aivillagers.com.igrium.elevenlabs.ElevenLabsWSConnection
 import com.igrium.elevenlabs.ElevenLabsClient
 import com.igrium.elevenlabs.requests.OutputFormat
 import com.igrium.elevenlabs.requests.TTSRequest
@@ -33,6 +34,10 @@ class ElevenLabsSpeechClient @JvmOverloads constructor(
         return scope.future { client.streamTTS(TTSRequest(text = message), voiceId, format) }
     }
 
+    @JvmOverloads
+    fun openWSConnection(format: OutputFormat = OutputFormat.PCM_22050): CompletableFuture<ElevenLabsWSConnection> {
+        return scope.future { client.openWSConnection(voiceId, format) }
+    }
 //    private suspend fun streamTTS(message: String): InputStream {
 //        return client.streamTTS(TTSRequest(text = message), voiceId = this.voiceId);
 //    }
