@@ -2,8 +2,11 @@ package com.igrium.aivillagers.subsystems.impl;
 
 import com.igrium.aivillagers.SpeechAudioManager;
 import com.igrium.aivillagers.subsystems.SpeechSubsystem;
+import com.igrium.aivillagers.util.AudioUtils;
+import com.igrium.aivillagers.util.ConcurrentIteratorQueue;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Util;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +14,8 @@ import javax.sound.sampled.AudioInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A standard superclass for all speech subsystems that will call some sort of text-to-speech API.
@@ -28,41 +33,105 @@ public abstract class Text2SpeechSubsystem implements SpeechSubsystem {
         }
 
         long startTime = Util.getMeasuringTimeMs();
-        doTextToSpeech(message).whenComplete((in, e) -> {
+        doTextToSpeech(message, null).whenComplete((in, e) -> {
             if (e != null) {
                 LOGGER.error("Error generating text-to-speech", e);
                 return;
             }
             LOGGER.info("Got TTS response in {}ms", Util.getMeasuringTimeMs() - startTime);
             LOGGER.info("AudioInputStream has {} samples.", in.getFrameLength());
-//            try {
-//                byte[] bytes = in.readAllBytes();
-//                LOGGER.info("TTS Bytes: " + bytesToHex(bytes));
-//            } catch (IOException ex) {
-//                throw new RuntimeException(ex);
-//            }
+
             audioManager.playAudioFromEntity(entity, in);
         });
+    }
+
+    @Override
+    public SpeechStream openSpeechStream(Entity entity) {
+        return new Text2SpeechStream(entity);
     }
 
     /**
      * Perform a text-to-speech request.
      *
      * @param message The text to say.
+     * @param prevText The text that came before the text of the current request.
      * @return A future that completes with an input stream containing the audio stream.
      * The future should complete as a response is received from the API,
      * and the input stream will be filled as the audio is generated.
      */
-    protected abstract CompletableFuture<AudioInputStream> doTextToSpeech(String message);
+    protected abstract CompletableFuture<AudioInputStream> doTextToSpeech(String message, @Nullable String prevText);
 
-    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
-    private static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+    private class Text2SpeechStream implements SpeechStream {
+
+        final Entity villager;
+
+        private StringBuilder sb = new StringBuilder();
+        private final StringBuilder complete = new StringBuilder();
+
+        private final ConcurrentIteratorQueue<AudioInputStream> audioStreams = new ConcurrentIteratorQueue<>();
+        private final AtomicBoolean startedPlaying = new AtomicBoolean();
+
+        private volatile boolean closed;
+        // The number of text-to-speech jobs we're waiting on
+        private final AtomicInteger jobs = new AtomicInteger(0);
+
+        private Text2SpeechStream(Entity villager) {
+            this.villager = villager;
         }
-        return new String(hexChars);
+
+        @Override
+        public synchronized void acceptToken(String token) {
+            sb.append(token);
+            if (token.matches("[.,?!;:—\\-\\[\\](){}]")) {
+                flush();
+            }
+        }
+
+        synchronized void flush() {
+            String msg = sb.toString();
+            LOGGER.info(msg);
+            if (!msg.isBlank()) {
+                jobs.incrementAndGet();
+                doTextToSpeech(sb.toString(), complete.toString()).whenComplete(this::acceptStream);
+            }
+            complete.append(sb);
+            sb = new StringBuilder();
+        }
+
+        void acceptStream(AudioInputStream stream, Throwable e) {
+            LOGGER.info("Audio stream: {}", stream);
+            if (e != null) {
+                LOGGER.error("Error downloading audio stream: ", e);
+            } else {
+                audioStreams.add(stream);
+
+                if (!startedPlaying.getAndSet(true)) {
+                    startPlaying();
+                }
+
+            }
+            if (jobs.decrementAndGet() <= 0 && closed) {
+                audioStreams.setComplete();
+            }
+        }
+
+        void startPlaying() {
+            SpeechAudioManager audioManager = SpeechAudioManager.getInstance();
+            if (audioManager == null) {
+                LOGGER.error("Simple VC was not setup properly; audio will not play.");
+                return;
+            }
+            LOGGER.info("Playing audio");
+            audioManager.playAudioFromEntity(villager, AudioUtils.concat(SpeechAudioManager.FORMAT, audioStreams));
+        }
+
+        @Override
+        public synchronized void close() {
+            closed = true;
+            flush();
+            if (jobs.get() <= 0) {
+                audioStreams.setComplete();
+            }
+        }
     }
 }

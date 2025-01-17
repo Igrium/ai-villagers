@@ -5,16 +5,15 @@ import com.igrium.aivillagers.gpt.GptClient;
 import com.igrium.aivillagers.gpt.VillagerAIInterface;
 import com.igrium.aivillagers.gpt.VillagerAIInterfaceImpl;
 import com.igrium.aivillagers.subsystems.AISubsystem;
+import com.igrium.aivillagers.subsystems.SpeechSubsystem;
 import com.igrium.aivillagers.subsystems.SubsystemType;
-import com.igrium.aivillagers.util.SimpleFlow;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Util;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.Flow;
 
 public class GptAISubsystem implements AISubsystem {
 
@@ -73,14 +72,8 @@ public class GptAISubsystem implements AISubsystem {
         aiManager.getSpeechSubsystem().speak(villager, message);
     }
 
-    /**
-     * Called when the language model has determined it's time for the villager to speak.
-     *
-     * @param villager The villager in question.
-     * @param target   Who they're speaking to.
-     * @param message  What to say.
-     */
-    public void doSpeak(Entity villager, Entity target, SimpleFlow<String> message) {
+    public SpeechSubsystem.SpeechStream getSpeechStream(Entity villager, @Nullable Entity target) {
+        return aiManager.getSpeechSubsystem().openSpeechStream(villager);
     }
 
     @Override

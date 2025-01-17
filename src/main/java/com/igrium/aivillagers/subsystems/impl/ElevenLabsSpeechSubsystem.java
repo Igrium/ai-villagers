@@ -44,7 +44,7 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
     private final Path debugOutput = Paths.get("debugAudio");
 
     @Override
-    protected CompletableFuture<AudioInputStream> doTextToSpeech(String message) {
+    protected CompletableFuture<AudioInputStream> doTextToSpeech(String message, String prevText) {
         return client.streamTTS(message)
 //                .thenApply(in -> MirrorInputStream.createDebugMirror(in, debugOutput))
                 .thenApply(in -> new AudioInputStream(new BufferedInputStream(in), AUDIO_FORMAT, Integer.MAX_VALUE));

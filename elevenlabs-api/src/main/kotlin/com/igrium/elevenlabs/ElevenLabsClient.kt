@@ -44,7 +44,8 @@ public class ElevenLabsClient @JvmOverloads constructor(
         }
         val res = httpClient.sendAsync(req, BodyHandlers.ofInputStream()).await()
         if (res.statusCode() != 200) {
-            throw ElevenLabsException(url.toString(), res.statusCode());
+            val msg = res.body().bufferedReader().readText()
+            throw ElevenLabsException(url.toString(), res.statusCode(), msg);
         }
         return res.body()
     }

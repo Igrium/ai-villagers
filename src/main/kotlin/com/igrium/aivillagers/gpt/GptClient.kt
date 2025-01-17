@@ -7,13 +7,11 @@ import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI
 import com.igrium.aivillagers.subsystems.impl.GptAISubsystem
-import com.igrium.aivillagers.util.SimpleFlow
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.future
 import net.minecraft.entity.Entity
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.SubmissionPublisher
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -81,26 +79,22 @@ class GptClient @JvmOverloads constructor(
             }
         }
 
-        val res = openAI.chatCompletions(request);
+        val res = openAI.chatCompletions(request)
 
         // Stream response from OpenAI and send back to AI subsystem
-        val flow = SimpleFlow<String>()
-        aiSubsystem.doSpeak(villager, target, flow)
-        val message = handleStreamResponse(res) {
-//            println("Villager: $it")
-            flow.submit(it)
-        };
-        flow.close()
+        val speech = aiSubsystem.getSpeechStream(villager, target)
+        val message = handleStreamResponse(res) { speech.acceptToken(it) }
+        speech.close()
 
         val history = aiInterface.getChatHistory(villager)
         history.add(message);
 
-        val msgContent = message.content;
+        val msgContent = message.content
 
         // This is done here because message may have been received
         // in response to a tool call rather than a direct request from the AI subsystem
         if (!msgContent.isNullOrBlank()) {
-            aiSubsystem.doSpeak(villager, null, msgContent)
+//            aiSubsystem.doSpeak(villager, null, msgContent)
         }
 
         // HANDLE TOOL CALLS

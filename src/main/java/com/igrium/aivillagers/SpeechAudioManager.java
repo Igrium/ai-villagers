@@ -39,7 +39,10 @@ public class SpeechAudioManager implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SpeechAudioManager.class);
     private static final int FRAME_SIZE = 960;
 
-    private static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000F, 16, 1, 2, 48000F, false);
+    /**
+     * The audio format that Simple Voice Chat likes.
+     */
+    public static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000F, 16, 1, 2, 48000F, false);
 
     private final SpeechVCPlugin plugin;
 

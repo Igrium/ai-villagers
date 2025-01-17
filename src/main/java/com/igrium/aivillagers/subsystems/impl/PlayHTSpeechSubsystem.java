@@ -50,7 +50,7 @@ public class PlayHTSpeechSubsystem extends Text2SpeechSubsystem {
     }
 
     @Override
-    protected CompletableFuture<AudioInputStream> doTextToSpeech(String message) {
+    protected CompletableFuture<AudioInputStream> doTextToSpeech(String message, String prevText) {
         return new SpeechStreamRequest()
                 .text(message)
                 .outputFormat(OutputFormat.WAV)

@@ -44,7 +44,7 @@ public class OpenAISpeechSubsystem extends Text2SpeechSubsystem {
     private final Path debugOutput = Paths.get("debugAudio.wav");
 
     @Override
-    protected CompletableFuture<AudioInputStream> doTextToSpeech(String message) {
+    protected CompletableFuture<AudioInputStream> doTextToSpeech(String message, String prevText) {
         var req = new SimpleOpenAISpeechClient.SpeechRequest()
                 .setInput(message)
                 .setVoice(config.voice)
