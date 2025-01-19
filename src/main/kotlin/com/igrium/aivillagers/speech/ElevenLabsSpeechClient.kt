@@ -7,6 +7,7 @@ import com.igrium.elevenlabs.requests.TTSRequest
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.future.future
 import net.minecraft.util.Util
 import java.io.InputStream
@@ -21,10 +22,10 @@ class ElevenLabsSpeechClient @JvmOverloads constructor(
 ) {
     private val client: ElevenLabsClient = ElevenLabsClient(
         apiKey = this.apiKey,
-        baseUrl = URI.create(baseUrl),
-        httpClient = HttpClient.newBuilder()
-            .executor(Util.getIoWorkerExecutor())
-            .build()
+        baseUrl = URI.create(baseUrl)
+//        httpClient = HttpClient.newBuilder()
+//            .executor(Util.getIoWorkerExecutor())
+//            .build()
     )
 
     private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("OpenAI Speech Client"))
