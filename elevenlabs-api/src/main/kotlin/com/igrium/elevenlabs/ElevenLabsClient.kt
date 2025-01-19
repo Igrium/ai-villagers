@@ -6,11 +6,14 @@ import com.igrium.elevenlabs.requests.TTSRequest
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.java.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.InputStream
@@ -23,7 +26,9 @@ import java.net.URI
 public class ElevenLabsClient @JvmOverloads constructor(
     private val apiKey: String,
     private val baseUrl: URI = URI.create("https://api.elevenlabs.io"),
-    private val httpClient: HttpClient = HttpClient(Java),
+    private val httpClient: HttpClient = HttpClient(Java) {
+        install(WebSockets)
+    },
     var printDebug: Boolean = false
 ) {
 
@@ -74,12 +79,23 @@ public class ElevenLabsClient @JvmOverloads constructor(
 //        modelId: String? = null,
 //        languageCode: String? = null,
     ): ElevenLabsWSConnection {
-        val url = URI.create("wss://api.elevenlabs.io/v1/text-to-speech/$voiceId/stream-input?output_format=${outputFormat.getSerialName()}")
+        val url = "wss://api.elevenlabs.io/v1/text-to-speech/$voiceId/stream-input?output_format=${outputFormat.getSerialName()}"
 
-        val listener = ElevenLabsWSConnection()
+        val ws = httpClient.webSocketSession(url) {
+            header("xi-api-key", apiKey)
+        }
+        val connection = ElevenLabsWSConnection(ws);
+        ws.launch {
+            try {
+                connection.run()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
 //        httpClient.newWebSocketBuilder()
 //            .header("xi-api-key", apiKey)
 //            .buildAsync(url, listener).await()
-        return listener
+        return connection
     }
 }

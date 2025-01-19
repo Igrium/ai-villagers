@@ -57,26 +57,26 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
                 .thenApply(in -> new AudioInputStream(new BufferedInputStream(in), AUDIO_FORMAT, Integer.MAX_VALUE));
     }
 
-//    @Override
-//    public SpeechStream openSpeechStream(Entity entity) {
-//        ElevenLabsSpeechStream stream = new ElevenLabsSpeechStream();
-//        client.openWSConnection(FORMAT).thenAccept(ws -> {
-//            stream.setConnection(ws);
-//
-//            AudioInputStream in = new AudioInputStream(ws.getInputStream(), AUDIO_FORMAT, Integer.MAX_VALUE);
-//            SpeechAudioManager audioManager = SpeechAudioManager.getInstance();
-//            if (audioManager == null) {
-//                LOGGER.error("Simple VC was not setup properly; audio will not play.");
-//                return;
-//            }
-//
-//            audioManager.playAudioFromEntity(entity, in);
-//        }).exceptionally(e -> {
-//            LOGGER.error("Error establishing connection with Eleven Labs: ", e);
-//            return null;
-//        });
-//        return stream;
-//    }
+    @Override
+    public SpeechStream openSpeechStream(Entity entity) {
+        ElevenLabsSpeechStream stream = new ElevenLabsSpeechStream();
+        client.openWSConnection(FORMAT).thenAccept(ws -> {
+            stream.setConnection(ws);
+
+            AudioInputStream in = new AudioInputStream(ws.getInputStream(), AUDIO_FORMAT, Integer.MAX_VALUE);
+            SpeechAudioManager audioManager = SpeechAudioManager.getInstance();
+            if (audioManager == null) {
+                LOGGER.error("Simple VC was not setup properly; audio will not play.");
+                return;
+            }
+
+            audioManager.playAudioFromEntity(entity, in);
+        }).exceptionally(e -> {
+            LOGGER.error("Error establishing connection with Eleven Labs: ", e);
+            return null;
+        });
+        return stream;
+    }
 
     private static class ElevenLabsSpeechStream implements SpeechStream {
 
