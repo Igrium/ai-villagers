@@ -80,10 +80,13 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
 
     private static class ElevenLabsSpeechStream implements SpeechStream {
 
+        private static final String SPLIT = "[.,?!;:—\\-\\[\\](){}]";
+
         @Nullable
         ElevenLabsWSConnection connection;
 
         final List<String> cache = new LinkedList<>();
+        StringBuilder sentenceBuilder = new StringBuilder();
 
         public void setConnection(ElevenLabsWSConnection connection) {
             this.connection = connection;
@@ -93,14 +96,25 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
         }
 
         @Override
-        public void acceptToken(String token) {
+        public synchronized void acceptToken(String token) {
+            sentenceBuilder.append(token);
+            if (token.matches(SPLIT)) {
+                acceptSentence(sentenceBuilder.toString());
+                sentenceBuilder = new StringBuilder();
+            }
+        }
+
+        private void acceptSentence(String sentence) {
             if (connection != null)
-                connection.sendTTSText(token);
-            cache.add(token);
+                connection.sendTTSText(sentence);
+            cache.add(sentence);
         }
 
         @Override
         public void close() {
+            if (!sentenceBuilder.isEmpty()) {
+                acceptSentence(sentenceBuilder.toString());
+            }
             if (connection != null)
                 connection.close();
         }

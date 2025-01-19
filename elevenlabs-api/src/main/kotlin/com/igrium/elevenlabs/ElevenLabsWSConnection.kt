@@ -4,6 +4,7 @@ import com.igrium.elevenlabs.ElevenLabsWSException
 import com.igrium.elevenlabs.requests.VoiceSettings
 import com.igrium.elevenlabs.util.PacketInputStream
 import io.ktor.websocket.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.future.future
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -27,6 +28,7 @@ class ElevenLabsWSConnection(val ws: WebSocketSession) {
     val inputStream get() = packetInputStream;
     private var closed = false;
 
+    @OptIn(DelicateCoroutinesApi::class)
     suspend fun run() {
         while (!closed) {
             val frame = ws.incoming.receive()
@@ -47,7 +49,9 @@ class ElevenLabsWSConnection(val ws: WebSocketSession) {
         }
 
         if (res.audio != null) {
-            packetInputStream.addPacket(Base64.getDecoder().decode(res.audio))
+            val packet = Base64.getDecoder().decode(res.audio)
+            println("received audio packet with ${packet.size} bytes")
+            packetInputStream.addPacket(packet)
         }
 
         if (res.isFinal == true) {
@@ -65,7 +69,6 @@ class ElevenLabsWSConnection(val ws: WebSocketSession) {
     fun close(): CompletableFuture<*> {
         return ws.future {
             ws.send("{\"text\": \"\"}")
-            closed = true
         }
     }
 }
