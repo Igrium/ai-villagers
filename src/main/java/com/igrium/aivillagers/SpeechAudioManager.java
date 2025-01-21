@@ -1,8 +1,6 @@
 package com.igrium.aivillagers;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -17,8 +15,6 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import com.igrium.aivillagers.debug.MirrorInputStream;
-import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,12 +54,6 @@ public class SpeechAudioManager implements Closeable {
 
     public VoicechatServerApi getApi() {
         return plugin.getServerApi();
-    }
-    
-    private final ExecutorService audioProcessingService = new ThreadPoolExecutor(3, 10, 30, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-
-    public Executor getAudioProcessingService() {
-        return audioProcessingService;
     }
 
     /**
@@ -110,8 +100,6 @@ public class SpeechAudioManager implements Closeable {
         }
     }
 
-    private static final AtomicInteger outIndex = new AtomicInteger(0);
-
     /**
      * Play audio from an entity.
      *
@@ -151,16 +139,8 @@ public class SpeechAudioManager implements Closeable {
         }
     }
 
-    private AudioInputStream wrapInputStreamInMirror(AudioInputStream in, OutputStream mirror) {
-        var format = in.getFormat();
-        long len = in.getFrameLength();
-        return new AudioInputStream(new MirrorInputStream(in, mirror), format, len);
-    }
-
     @Override
     public void close() {
-        LOGGER.info("Shutting down audio processing service");
-        audioProcessingService.shutdown();
     }
     
     private class StreamingAudioPlayer {
@@ -170,27 +150,12 @@ public class SpeechAudioManager implements Closeable {
 
         StreamingAudioPlayer(AudioChannel channel, AudioInputStream audio) {
             LOGGER.info("Starting audio playback");
-            Path outPath = FabricLoader.getInstance().getGameDir().resolve("testaudio");
-            try {
-                Files.createDirectories(outPath);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
             this.audio = AudioSystem.getAudioInputStream(FORMAT, audio);
-
-            try {
-                this.audio = wrapInputStreamInMirror(this.audio, Files.newOutputStream(outPath.resolve(Integer.toString(outIndex.getAndIncrement()) + ".pcm")));
-            } catch (Exception e) {
-                LOGGER.error("Error opening debug output: ", e);
-            }
-
             this.audioPlayer = getApi().createAudioPlayer(channel, getApi().createEncoder(), this::getFrame);
         }
 
         synchronized short[] getFrame() {
             try {
-                Arrays.fill(readBuffer, (byte) 0);
                 int read = audio.read(readBuffer);
 
                 if (read < 0) {
@@ -203,7 +168,7 @@ public class SpeechAudioManager implements Closeable {
                 }
                 return getApi().getAudioConverter().bytesToShorts(readBuffer);
             } catch (Exception e) {
-                LOGGER.info("Error reading audio stream:", e);
+                LOGGER.error("Error reading audio stream:", e);
                 return null;
             }
         }
