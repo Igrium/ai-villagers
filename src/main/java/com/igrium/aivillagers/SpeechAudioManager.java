@@ -134,12 +134,12 @@ public class SpeechAudioManager implements Closeable {
             channel.setDistance(100);
 
             AudioPlayer player = streamAudio(channel, audio);
+            player.startPlaying();
             long time = System.currentTimeMillis();
             player.setOnStopped(() -> {
                 LOGGER.info("Audio finished playing in {}ms", System.currentTimeMillis() - time);
             });
 
-            player.startPlaying();
             return player;
         } catch (Exception e) {
             LOGGER.error("Error playing audio from entity.", e);

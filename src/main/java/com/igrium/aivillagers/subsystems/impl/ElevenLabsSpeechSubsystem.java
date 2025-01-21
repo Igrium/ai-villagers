@@ -1,6 +1,7 @@
 package com.igrium.aivillagers.subsystems.impl;
 
 import com.igrium.aivillagers.AIManager;
+import com.igrium.aivillagers.AIVillagers;
 import com.igrium.aivillagers.SpeechAudioManager;
 import com.igrium.aivillagers.com.igrium.elevenlabs.ElevenLabsWSConnection;
 import com.igrium.aivillagers.speech.ElevenLabsSpeechClient;
@@ -18,7 +19,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(ElevenLabsSpeechSubsystem.class);
@@ -69,6 +72,10 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
                 LOGGER.error("Simple VC was not setup properly; audio will not play.");
                 return;
             }
+            ws.setOnError((e) -> {
+                LOGGER.error("Error communicating with ElevenLabs: ", e);
+                audioManager.playAudioFromEntity(entity, AIVillagers.getInstance().getErrorSound().getInputStream());
+            });
 
             audioManager.playAudioFromEntity(entity, in);
         }).exceptionally(e -> {
@@ -85,7 +92,7 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
         @Nullable
         ElevenLabsWSConnection connection;
 
-        final List<String> cache = new LinkedList<>();
+        final Queue<String> cache = new ConcurrentLinkedQueue<>();
         StringBuilder sentenceBuilder = new StringBuilder();
 
         public void setConnection(ElevenLabsWSConnection connection) {

@@ -85,13 +85,7 @@ public class ElevenLabsClient @JvmOverloads constructor(
             header("xi-api-key", apiKey)
         }
         val connection = ElevenLabsWSConnection(ws);
-        ws.launch {
-            try {
-                connection.run()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        ws.launch { connection.run() }
 
 //        httpClient.newWebSocketBuilder()
 //            .header("xi-api-key", apiKey)

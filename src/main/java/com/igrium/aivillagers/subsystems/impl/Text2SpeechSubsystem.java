@@ -1,5 +1,6 @@
 package com.igrium.aivillagers.subsystems.impl;
 
+import com.igrium.aivillagers.AIVillagers;
 import com.igrium.aivillagers.SpeechAudioManager;
 import com.igrium.aivillagers.subsystems.SpeechSubsystem;
 import com.igrium.aivillagers.util.AudioUtils;
@@ -63,6 +64,14 @@ public abstract class Text2SpeechSubsystem implements SpeechSubsystem {
      */
     protected abstract CompletableFuture<AudioInputStream> doTextToSpeech(String message, @Nullable String prevText);
 
+
+    protected final CompletableFuture<AudioInputStream> tryTextToSpeech(String message, @Nullable String prevText) {
+        return doTextToSpeech(message, prevText).exceptionally(e -> {
+            LOGGER.error("Error generating text-to-speech:", e);
+            return AIVillagers.getInstance().getErrorSound().getInputStream();
+        });
+    }
+
     private class Text2SpeechStream implements SpeechStream {
 
         final Entity villager;
@@ -94,7 +103,7 @@ public abstract class Text2SpeechSubsystem implements SpeechSubsystem {
             LOGGER.info(msg);
             if (!msg.isBlank()) {
                 jobs.incrementAndGet();
-                doTextToSpeech(sb.toString(), complete.toString()).whenComplete(this::acceptStream);
+                tryTextToSpeech(sb.toString(), complete.toString()).whenComplete(this::acceptStream);
             }
             complete.append(sb);
             sb = new StringBuilder();
