@@ -4,6 +4,7 @@ import com.igrium.aivillagers.com.igrium.elevenlabs.ElevenLabsWSConnection
 import com.igrium.elevenlabs.ElevenLabsClient
 import com.igrium.elevenlabs.requests.OutputFormat
 import com.igrium.elevenlabs.requests.TTSRequest
+import com.igrium.elevenlabs.requests.VoiceSettings
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,8 @@ class ElevenLabsSpeechClient @JvmOverloads constructor(
 ) {
     private val client: ElevenLabsClient = ElevenLabsClient(
         apiKey = this.apiKey,
-        baseUrl = URI.create(baseUrl)
+        baseUrl = URI.create(baseUrl),
+        printDebug = true
 //        httpClient = HttpClient.newBuilder()
 //            .executor(Util.getIoWorkerExecutor())
 //            .build()
@@ -36,8 +38,12 @@ class ElevenLabsSpeechClient @JvmOverloads constructor(
     }
 
     @JvmOverloads
-    fun openWSConnection(format: OutputFormat = OutputFormat.PCM_22050): CompletableFuture<ElevenLabsWSConnection> {
-        return scope.future { client.openWSConnection(voiceId, format) }
+    fun openWSConnection(
+        format: OutputFormat = OutputFormat.PCM_22050,
+        voiceSettings: VoiceSettings? = null,
+        modelId: String? = null
+    ): CompletableFuture<ElevenLabsWSConnection> {
+        return scope.future { client.openWSConnection(voiceId, format, voiceSettings, modelId) }
     }
 //    private suspend fun streamTTS(message: String): InputStream {
 //        return client.streamTTS(TTSRequest(text = message), voiceId = this.voiceId);

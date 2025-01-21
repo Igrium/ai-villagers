@@ -1,5 +1,6 @@
 package com.igrium.aivillagers.subsystems.impl;
 
+import com.google.gson.annotations.SerializedName;
 import com.igrium.aivillagers.AIManager;
 import com.igrium.aivillagers.AIVillagers;
 import com.igrium.aivillagers.SpeechAudioManager;
@@ -7,6 +8,7 @@ import com.igrium.aivillagers.com.igrium.elevenlabs.ElevenLabsWSConnection;
 import com.igrium.aivillagers.speech.ElevenLabsSpeechClient;
 import com.igrium.aivillagers.subsystems.SubsystemType;
 import com.igrium.elevenlabs.requests.OutputFormat;
+import com.igrium.elevenlabs.requests.VoiceSettings;
 import net.minecraft.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -32,16 +34,56 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
         public String apiKey;
         public String voiceId;
         public @Nullable String baseURL;
+        public @Nullable String modelId = "eleven_multilingual_v2";
+        public @Nullable ElevenLabsVoiceSettings voiceSettings;
+    }
+
+    /**
+     * This is really dumb that I need a dedicated representation of this for config.
+     */
+    public static final class ElevenLabsVoiceSettings {
+        @Nullable
+        @SerializedName("stability")
+        public Double stability;
+
+        @Nullable
+        @SerializedName("similarity_boost")
+        public Double similarityBoost;
+
+        @Nullable
+        @SerializedName("style")
+        public Double style;
+
+        @Nullable
+        @SerializedName("use_speaker_boost")
+        public Boolean useSpeakerBoost;
+
+        public VoiceSettings toVoiceSettings() {
+            return new VoiceSettings(stability, similarityBoost, style, useSpeakerBoost);
+        }
     }
 
     private final AIManager aiManager;
 
     private final ElevenLabsSpeechClient client;
 
+    @Nullable
+    private final VoiceSettings voiceSettings;
+
+    @Nullable
+    private String modelId;
+
     public ElevenLabsSpeechSubsystem(AIManager aiManager, ElevenLabsSpeechSubsystemConfig config) {
         this.aiManager = aiManager;
         client = new ElevenLabsSpeechClient(
                 config.apiKey, config.voiceId, config.baseURL != null ? config.baseURL : "https://api.elevenlabs.io");
+
+        if (config.voiceSettings != null) {
+            this.voiceSettings = config.voiceSettings.toVoiceSettings();
+        } else {
+            this.voiceSettings = null;
+        }
+        this.modelId = config.modelId;
     }
 
     public AIManager getAiManager() {
@@ -60,10 +102,19 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
                 .thenApply(in -> new AudioInputStream(new BufferedInputStream(in), AUDIO_FORMAT, Integer.MAX_VALUE));
     }
 
+    private void playErrorSound(Entity entity) {
+        SpeechAudioManager audioManager = SpeechAudioManager.getInstance();
+        if (audioManager == null) {
+            LOGGER.error("Simple VC was not setup properly; audio will not play.");
+            return;
+        }
+        audioManager.playAudioFromEntity(entity, AIVillagers.getInstance().getErrorSound().getInputStream());
+    }
+
     @Override
     public SpeechStream openSpeechStream(Entity entity) {
         ElevenLabsSpeechStream stream = new ElevenLabsSpeechStream();
-        client.openWSConnection(FORMAT).thenAccept(ws -> {
+        client.openWSConnection(FORMAT, voiceSettings, modelId).thenAccept(ws -> {
             stream.setConnection(ws);
 
             AudioInputStream in = new AudioInputStream(ws.getInputStream(), AUDIO_FORMAT, Integer.MAX_VALUE);
@@ -74,7 +125,7 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
             }
             ws.setOnError((e) -> {
                 LOGGER.error("Error communicating with ElevenLabs: ", e);
-                audioManager.playAudioFromEntity(entity, AIVillagers.getInstance().getErrorSound().getInputStream());
+                playErrorSound(entity);
             });
 
             // Wait until we have audio to try to play it.
@@ -82,6 +133,7 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
 
         }).exceptionally(e -> {
             LOGGER.error("Error establishing connection with Eleven Labs: ", e);
+            playErrorSound(entity);
             return null;
         });
         return stream;

@@ -4,30 +4,25 @@ import com.igrium.elevenlabs.ElevenLabsWSException
 import com.igrium.elevenlabs.requests.VoiceSettings
 import com.igrium.elevenlabs.util.PacketInputStream
 import io.ktor.websocket.*
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.future.future
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.net.http.WebSocket
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
 import java.util.function.Consumer
 
-class ElevenLabsWSConnection(val ws: WebSocketSession, val printDebug: Boolean = false) {
+class ElevenLabsWSConnection(val ws: WebSocketSession,
+                             private val voiceSettings: VoiceSettings? = null,
+                             val printDebug: Boolean = false) {
 
     private val packetInputStream = PacketInputStream();
 
-    private val LOGGER = LoggerFactory.getLogger(javaClass);
+    private val logger = LoggerFactory.getLogger(javaClass);
 
-    var onError: (e: Exception) -> Unit = { LOGGER.error("ElevenLabs error: ", it) }
+    var onError: (e: Exception) -> Unit = { logger.error("ElevenLabs error: ", it) }
 
     /**
      * A future that gets completed when the first packet of data is received with
@@ -80,7 +75,7 @@ class ElevenLabsWSConnection(val ws: WebSocketSession, val printDebug: Boolean =
         if (res.audio != null) {
             val packet = Base64.getDecoder().decode(res.audio)
             if (printDebug)
-                LOGGER.info("received audio packet with ${packet.size} bytes")
+                logger.info("received audio packet with ${packet.size} bytes")
             packetInputStream.addPacket(packet)
         }
 
@@ -90,10 +85,16 @@ class ElevenLabsWSConnection(val ws: WebSocketSession, val printDebug: Boolean =
         }
     }
 
+    private var isFirstMessage = true
+
     fun sendTTSText(text: String): CompletableFuture<*> {
-        val str = Json.encodeToString(ELStreamText(text));
+        val msg = if (isFirstMessage) ELStreamText(text, voiceSettings) else ELStreamText(text)
+
+        val str = Json.encodeToString(msg);
         if (printDebug)
-            LOGGER.info(str)
+            logger.info(str)
+
+        isFirstMessage = false
         return ws.future { ws.send(str) }
     }
 

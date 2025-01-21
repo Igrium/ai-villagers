@@ -3,6 +3,7 @@ package com.igrium.elevenlabs
 import com.igrium.aivillagers.com.igrium.elevenlabs.ElevenLabsWSConnection
 import com.igrium.elevenlabs.requests.OutputFormat
 import com.igrium.elevenlabs.requests.TTSRequest
+import com.igrium.elevenlabs.requests.VoiceSettings
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.java.*
@@ -16,6 +17,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.URI
 
@@ -23,7 +25,7 @@ import java.net.URI
 /**
  * The primary client used to communicate with ElevenLabs
  */
-public class ElevenLabsClient @JvmOverloads constructor(
+class ElevenLabsClient @JvmOverloads constructor(
     private val apiKey: String,
     private val baseUrl: URI = URI.create("https://api.elevenlabs.io"),
     private val httpClient: HttpClient = HttpClient(Java) {
@@ -59,15 +61,31 @@ public class ElevenLabsClient @JvmOverloads constructor(
     suspend fun openWSConnection(
         voiceId: String,
         outputFormat: OutputFormat = OutputFormat.MP3_44100_128,
+        voiceSettings: VoiceSettings? = null,
+        modelId: String? = null
 //        modelId: String? = null,
 //        languageCode: String? = null,
     ): ElevenLabsWSConnection {
-        val url = "wss://api.elevenlabs.io/v1/text-to-speech/$voiceId/stream-input?output_format=${outputFormat.getSerialName()}"
+
+        val urlBuilder = URLBuilder()
+
+        urlBuilder.set {
+            protocol = URLProtocol.WSS
+            host = "api.elevenlabs.io"
+            path("v1/text-to-speech/$voiceId/stream-input")
+            parameters.append("output_format", outputFormat.getSerialName())
+            if (!modelId.isNullOrBlank())
+                parameters.append("model_id", modelId)
+        }
+        val url = urlBuilder.buildString()
+
+        if (printDebug)
+            LoggerFactory.getLogger(javaClass).info("Connecting to ElevenLabs URL: {}", url)
 
         val ws = httpClient.webSocketSession(url) {
             header("xi-api-key", apiKey)
         }
-        val connection = ElevenLabsWSConnection(ws, printDebug);
+        val connection = ElevenLabsWSConnection(ws, voiceSettings, printDebug);
         ws.launch { connection.run() }
 
 //        httpClient.newWebSocketBuilder()
