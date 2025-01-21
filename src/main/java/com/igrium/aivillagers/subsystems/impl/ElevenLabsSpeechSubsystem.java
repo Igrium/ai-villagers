@@ -77,7 +77,9 @@ public class ElevenLabsSpeechSubsystem extends Text2SpeechSubsystem {
                 audioManager.playAudioFromEntity(entity, AIVillagers.getInstance().getErrorSound().getInputStream());
             });
 
-            audioManager.playAudioFromEntity(entity, in);
+            // Wait until we have audio to try to play it.
+            ws.getOnReceiveFirstData().thenRun(() -> audioManager.playAudioFromEntity(entity, in));
+
         }).exceptionally(e -> {
             LOGGER.error("Error establishing connection with Eleven Labs: ", e);
             return null;

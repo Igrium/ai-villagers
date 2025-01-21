@@ -21,13 +21,21 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.function.Consumer
 
-class ElevenLabsWSConnection(val ws: WebSocketSession) {
+class ElevenLabsWSConnection(val ws: WebSocketSession, val printDebug: Boolean = false) {
 
     private val packetInputStream = PacketInputStream();
 
     private val LOGGER = LoggerFactory.getLogger(javaClass);
 
     var onError: (e: Exception) -> Unit = { LOGGER.error("ElevenLabs error: ", it) }
+
+    /**
+     * A future that gets completed when the first packet of data is received with
+     * the amount of time it took to receive the packet.
+     * If there's an error before the first packet is received, the future fails
+     * with that error. (`onError` is still called)
+     */
+    val onReceiveFirstData: CompletableFuture<Int> = CompletableFuture()
 
     fun setOnError(onError: Consumer<Exception>) {
         this.onError = { onError.accept(it) }
@@ -39,7 +47,10 @@ class ElevenLabsWSConnection(val ws: WebSocketSession) {
     val inputStream get() = packetInputStream;
     private var closed = false;
 
+    private var startTime: Long = 0
+
     suspend fun run() {
+        startTime = System.currentTimeMillis()
         try {
             while (!closed) {
                 val frame = ws.incoming.receive()
@@ -49,6 +60,8 @@ class ElevenLabsWSConnection(val ws: WebSocketSession) {
                 }
             }
         } catch (e: Exception) {
+            if (!onReceiveFirstData.isDone)
+                onReceiveFirstData.completeExceptionally(e)
             onError(e)
         }
     }
@@ -61,10 +74,13 @@ class ElevenLabsWSConnection(val ws: WebSocketSession) {
                 res.message ?: res.error
             )
         }
+        if (!onReceiveFirstData.isDone)
+            onReceiveFirstData.complete((System.currentTimeMillis() - startTime).toInt())
 
         if (res.audio != null) {
             val packet = Base64.getDecoder().decode(res.audio)
-            println("received audio packet with ${packet.size} bytes")
+            if (printDebug)
+                LOGGER.info("received audio packet with ${packet.size} bytes")
             packetInputStream.addPacket(packet)
         }
 
@@ -76,7 +92,8 @@ class ElevenLabsWSConnection(val ws: WebSocketSession) {
 
     fun sendTTSText(text: String): CompletableFuture<*> {
         val str = Json.encodeToString(ELStreamText(text));
-        LOGGER.info(str)
+        if (printDebug)
+            LOGGER.info(str)
         return ws.future { ws.send(str) }
     }
 

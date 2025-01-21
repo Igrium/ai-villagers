@@ -1,9 +1,8 @@
 package com.igrium.aivillagers;
 
-import java.io.BufferedInputStream;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -11,12 +10,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import com.igrium.aivillagers.debug.MirrorInputStream;
+import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,6 +110,8 @@ public class SpeechAudioManager implements Closeable {
         }
     }
 
+    private static final AtomicInteger outIndex = new AtomicInteger(0);
+
     /**
      * Play audio from an entity.
      *
@@ -129,7 +133,7 @@ public class SpeechAudioManager implements Closeable {
                 LOGGER.warn("Unable to create audio channel for {}", entity.getNameForScoreboard());
                 return null;
             }
-      
+
             channel.setCategory(SpeechVCPlugin.VILLAGER_CATEGORY);
             channel.setDistance(100);
 
@@ -147,6 +151,12 @@ public class SpeechAudioManager implements Closeable {
         }
     }
 
+    private AudioInputStream wrapInputStreamInMirror(AudioInputStream in, OutputStream mirror) {
+        var format = in.getFormat();
+        long len = in.getFrameLength();
+        return new AudioInputStream(new MirrorInputStream(in, mirror), format, len);
+    }
+
     @Override
     public void close() {
         LOGGER.info("Shutting down audio processing service");
@@ -159,7 +169,22 @@ public class SpeechAudioManager implements Closeable {
         AudioInputStream audio;
 
         StreamingAudioPlayer(AudioChannel channel, AudioInputStream audio) {
+            LOGGER.info("Starting audio playback");
+            Path outPath = FabricLoader.getInstance().getGameDir().resolve("testaudio");
+            try {
+                Files.createDirectories(outPath);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
             this.audio = AudioSystem.getAudioInputStream(FORMAT, audio);
+
+            try {
+                this.audio = wrapInputStreamInMirror(this.audio, Files.newOutputStream(outPath.resolve(Integer.toString(outIndex.getAndIncrement()) + ".pcm")));
+            } catch (Exception e) {
+                LOGGER.error("Error opening debug output: ", e);
+            }
+
             this.audioPlayer = getApi().createAudioPlayer(channel, getApi().createEncoder(), this::getFrame);
         }
 

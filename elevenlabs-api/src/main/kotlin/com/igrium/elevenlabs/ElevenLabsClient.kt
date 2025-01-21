@@ -54,23 +54,6 @@ public class ElevenLabsClient @JvmOverloads constructor(
         println("Received response from ElevenLabs in ${System.currentTimeMillis() - startTime}ms");
         return res.bodyAsChannel().toInputStream()
 
-//        val req = HttpRequest.newBuilder(url)
-//            .header("xi-api-key", apiKey)
-//            .header("Content-Type", "application/json")
-//            .POST(HttpRequest.BodyPublishers.ofString(Json.encodeToString(params)))
-//            .build()
-//
-//        if (printDebug) {
-//            println("ElevenLabs Request URL: " + req.uri())
-//            println("ElevenLabs Request Headers: " + req.headers())
-//            println("ElevenLabs Request Content: " + Json.encodeToString(params))
-//        }
-//        val res = httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofInputStream()).await()
-//        if (res.statusCode() != 200) {
-//            val msg = res.body().bufferedReader().readText()
-//            throw ElevenLabsException(url.toString(), res.statusCode(), msg);
-//        }
-//        return res.body()
     }
 
     suspend fun openWSConnection(
@@ -84,7 +67,7 @@ public class ElevenLabsClient @JvmOverloads constructor(
         val ws = httpClient.webSocketSession(url) {
             header("xi-api-key", apiKey)
         }
-        val connection = ElevenLabsWSConnection(ws);
+        val connection = ElevenLabsWSConnection(ws, printDebug);
         ws.launch { connection.run() }
 
 //        httpClient.newWebSocketBuilder()
