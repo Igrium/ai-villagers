@@ -1,0 +1,395 @@
+"Worker-Main-5@20519" tid=0x4c nid=NA waiting
+  java.lang.Thread.State: WAITING
+	 blocks Worker-Main-1@19209
+	 blocks Worker-Main-2@19211
+	 blocks Worker-Main-3@19213
+	 blocks Worker-Main-4@20491
+	 blocks Worker-Main-6@20524
+	 blocks Worker-Main-7@22352
+	 blocks Worker-Main-8@22355
+	 blocks Worker-Main-9@22356
+	 blocks Worker-Main-10@22360
+	 blocks Worker-Main-11@22357
+	 blocks VoiceChatPacketProcessingThread@23436
+	  at java.lang.Object.wait0(Object.java:-1)
+	  at java.lang.Object.wait(Object.java:366)
+	  at java.io.PipedInputStream.awaitSpace(PipedInputStream.java:279)
+	  at java.io.PipedInputStream.receive(PipedInputStream.java:237)
+	  at java.io.PipedOutputStream.write(PipedOutputStream.java:154)
+	  at de.maxhenkel.lame4j.Mp3Encoder.close(Mp3Encoder.java:57)
+	  - locked <0x6840> (a de.maxhenkel.lame4j.Mp3Encoder)
+	  at de.maxhenkel.voicechat.plugins.impl.mp3.Mp3EncoderImpl.close(Mp3EncoderImpl.java:29)
+	  at com.igrium.aivillagers.voice.VoiceWriter.close(VoiceWriter.java:108)
+	  at com.igrium.aivillagers.voice.VoiceWriter.flush(VoiceWriter.java:95)
+	  - locked <0x67a7> (a com.igrium.aivillagers.voice.VoiceWriter)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:114)
+	  - locked <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"IO-Worker-2@22651" tid=0x60 nid=NA waiting
+  java.lang.Thread.State: WAITING
+	  at jdk.internal.misc.Unsafe.park(Unsafe.java:-1)
+	  at java.util.concurrent.locks.LockSupport.park(LockSupport.java:221)
+	  at java.util.concurrent.CompletableFuture$Signaller.block(CompletableFuture.java:1864)
+	  at java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)
+	  at java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)
+	  at java.util.concurrent.CompletableFuture.waitingGet(CompletableFuture.java:1898)
+	  at java.util.concurrent.CompletableFuture.join(CompletableFuture.java:2117)
+	  at net.minecraft.server.world.ServerChunkLoadingManager$$Lambda/0x00000239ab0ba288.get(Unknown Source:-1)
+	  at net.minecraft.world.storage.StorageIoWorker.method_61774(StorageIoWorker.java:133)
+	  at net.minecraft.world.storage.StorageIoWorker$$Lambda/0x00000239ab0ba4a0.get(Unknown Source:-1)
+	  at net.minecraft.world.storage.StorageIoWorker.method_64029(StorageIoWorker.java:211)
+	  at net.minecraft.world.storage.StorageIoWorker$$Lambda/0x00000239ab0ba6b8.accept(Unknown Source:-1)
+	  at net.minecraft.util.thread.PrioritizedConsecutiveExecutor.method_63600(PrioritizedConsecutiveExecutor.java:19)
+	  at net.minecraft.util.thread.PrioritizedConsecutiveExecutor$$Lambda/0x00000239ab013d08.run(Unknown Source:-1)
+	  at net.minecraft.util.thread.TaskQueue$PrioritizedTask.run(TaskQueue.java:70)
+	  at net.minecraft.util.Util.runInNamedZone(Util.java:356)
+	  at net.minecraft.util.thread.ConsecutiveExecutor.runOnce(ConsecutiveExecutor.java:45)
+	  at net.minecraft.util.thread.ConsecutiveExecutor.run(ConsecutiveExecutor.java:53)
+	  at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	  at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	  at java.lang.Thread.runWith(Thread.java:1596)
+	  at java.lang.Thread.run(Thread.java:1583)
+
+"Server console handler@21102" tid=0x50 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	  at java.io.FileInputStream.readBytes(FileInputStream.java:-1)
+	  at java.io.FileInputStream.read(FileInputStream.java:287)
+	  at java.io.BufferedInputStream.read1(BufferedInputStream.java:345)
+	  at java.io.BufferedInputStream.implRead(BufferedInputStream.java:420)
+	  at java.io.BufferedInputStream.read(BufferedInputStream.java:399)
+	  at sun.nio.cs.StreamDecoder.readBytes(StreamDecoder.java:350)
+	  at sun.nio.cs.StreamDecoder.implRead(StreamDecoder.java:393)
+	  at sun.nio.cs.StreamDecoder.lockedRead(StreamDecoder.java:217)
+	  at sun.nio.cs.StreamDecoder.read(StreamDecoder.java:171)
+	  at java.io.InputStreamReader.read(InputStreamReader.java:188)
+	  at java.io.BufferedReader.fill(BufferedReader.java:160)
+	  at java.io.BufferedReader.implReadLine(BufferedReader.java:370)
+	  at java.io.BufferedReader.readLine(BufferedReader.java:347)
+	  at java.io.BufferedReader.readLine(BufferedReader.java:436)
+	  at net.minecraft.server.dedicated.MinecraftDedicatedServer$1.run(MinecraftDedicatedServer.java:106)
+
+"Coroutines Debugger Cleaner@1193" tid=0x17 nid=NA waiting
+  java.lang.Thread.State: WAITING
+	  at jdk.internal.misc.Unsafe.park(Unsafe.java:-1)
+	  at java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)
+	  at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)
+	  at java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)
+	  at java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)
+	  at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1712)
+	  at java.lang.ref.ReferenceQueue.await(ReferenceQueue.java:67)
+	  at java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:158)
+	  at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:234)
+	  at kotlinx.coroutines.debug.internal.ConcurrentWeakMap.runWeakRefQueueCleaningLoopUntilInterrupted(ConcurrentWeakMap.kt:69)
+	  at kotlinx.coroutines.debug.internal.DebugProbesImpl.startWeakRefCleanerThread$lambda$2(DebugProbesImpl.kt:92)
+	  at kotlinx.coroutines.debug.internal.DebugProbesImpl$$Lambda/0x00000239aa006bc8.invoke(Unknown Source:-1)
+	  at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+
+"Server thread@21099" tid=0x4e nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	  at jdk.internal.misc.Unsafe.park(Unsafe.java:-1)
+	  at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+	  at net.minecraft.server.MinecraftServer.waitForTasks(MinecraftServer.java:897)
+	  at net.minecraft.util.thread.ThreadExecutor.runTasks(ThreadExecutor.java:129)
+	  at net.minecraft.server.MinecraftServer.runTasks(MinecraftServer.java:878)
+	  at net.minecraft.server.MinecraftServer.runTasksTillTickEnd(MinecraftServer.java:886)
+	  at net.minecraft.server.MinecraftServer.shutdown(MinecraftServer.java:668)
+	  at net.minecraft.server.dedicated.MinecraftDedicatedServer.shutdown(MinecraftDedicatedServer.java:543)
+	  at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:800)
+	  at net.minecraft.server.MinecraftServer.method_29739(MinecraftServer.java:300)
+	  at net.minecraft.server.MinecraftServer$$Lambda/0x00000239aaedb0d0.run(Unknown Source:-1)
+	  at java.lang.Thread.runWith(Thread.java:1596)
+	  at java.lang.Thread.run(Thread.java:1583)
+
+"Netty Server IO #0@21703" tid=0x54 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	  at sun.nio.ch.WEPoll.wait(WEPoll.java:-1)
+	  at sun.nio.ch.WEPollSelectorImpl.doSelect(WEPollSelectorImpl.java:114)
+	  at sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)
+	  - locked <0x6842> (a sun.nio.ch.WEPollSelectorImpl)
+	  - locked <0x6843> (a io.netty.channel.nio.SelectedSelectionKeySet)
+	  at sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)
+	  at io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)
+	  at io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)
+	  at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)
+	  at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)
+	  at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	  at java.lang.Thread.runWith(Thread.java:1596)
+	  at java.lang.Thread.run(Thread.java:1583)
+
+"Netty Server IO #1@21737" tid=0x55 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	  at sun.nio.ch.WEPoll.wait(WEPoll.java:-1)
+	  at sun.nio.ch.WEPollSelectorImpl.doSelect(WEPollSelectorImpl.java:114)
+	  at sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)
+	  - locked <0x6844> (a sun.nio.ch.WEPollSelectorImpl)
+	  - locked <0x6845> (a io.netty.channel.nio.SelectedSelectionKeySet)
+	  at sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)
+	  at io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)
+	  at io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)
+	  at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)
+	  at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)
+	  at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	  at java.lang.Thread.runWith(Thread.java:1596)
+	  at java.lang.Thread.run(Thread.java:1583)
+
+"Netty Server IO #2@23834" tid=0x66 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	  at sun.nio.ch.WEPoll.wait(WEPoll.java:-1)
+	  at sun.nio.ch.WEPollSelectorImpl.doSelect(WEPollSelectorImpl.java:114)
+	  at sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:130)
+	  - locked <0x6846> (a sun.nio.ch.WEPollSelectorImpl)
+	  - locked <0x6847> (a io.netty.channel.nio.SelectedSelectionKeySet)
+	  at sun.nio.ch.SelectorImpl.select(SelectorImpl.java:147)
+	  at io.netty.channel.nio.SelectedSelectionKeySetSelector.select(SelectedSelectionKeySetSelector.java:68)
+	  at io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:879)
+	  at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:526)
+	  at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)
+	  at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	  at java.lang.Thread.runWith(Thread.java:1596)
+	  at java.lang.Thread.run(Thread.java:1583)
+
+"ConfigSaver@16762" tid=0x43 nid=NA waiting
+  java.lang.Thread.State: WAITING
+	  at jdk.internal.misc.Unsafe.park(Unsafe.java:-1)
+	  at java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)
+	  at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)
+	  at java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)
+	  at java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)
+	  at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1712)
+	  at java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:435)
+	  at java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)
+	  at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)
+	  at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	  at java.lang.Thread.runWith(Thread.java:1596)
+	  at java.lang.Thread.run(Thread.java:1583)
+
+"Worker-Main-1@19209" tid=0x48 nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:112)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Worker-Main-2@19211" tid=0x49 nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:112)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Worker-Main-3@19213" tid=0x4a nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:112)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Worker-Main-4@20491" tid=0x4b nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:112)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Worker-Main-6@20524" tid=0x4d nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:112)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Worker-Main-7@22352" tid=0x59 nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:112)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Worker-Main-8@22355" tid=0x5a nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:112)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Worker-Main-9@22356" tid=0x5b nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:112)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Worker-Main-10@22360" tid=0x5c nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:112)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Worker-Main-11@22357" tid=0x5d nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.tick(SpeechVCPlugin.java:112)
+	  at com.igrium.aivillagers.SpeechVCPlugin.lambda$tick$1(SpeechVCPlugin.java:155)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239ab09c270.run(Unknown Source:-1)
+	  at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	  at java.util.concurrent.ForkJoinTask.doExec$$$capture(ForkJoinTask.java:387)
+	  at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:-1)
+	  at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	  at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	  at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	  at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Common-Cleaner@26533" tid=0x13 nid=NA waiting
+  java.lang.Thread.State: WAITING
+	  at jdk.internal.misc.Unsafe.park(Unsafe.java:-1)
+	  at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+	  at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1852)
+	  at java.lang.ref.ReferenceQueue.await(ReferenceQueue.java:71)
+	  at java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:143)
+	  at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:218)
+	  at jdk.internal.ref.CleanerImpl.run(CleanerImpl.java:140)
+	  at java.lang.Thread.runWith(Thread.java:1596)
+	  at java.lang.Thread.run(Thread.java:1583)
+	  at jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:186)
+
+"Yggdrasil Key Fetcher@17296" tid=0x45 nid=NA waiting
+  java.lang.Thread.State: WAITING
+	  at jdk.internal.misc.Unsafe.park(Unsafe.java:-1)
+	  at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+	  at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1763)
+	  at java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+	  at java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+	  at java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)
+	  at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)
+	  at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	  at java.lang.Thread.runWith(Thread.java:1596)
+	  at java.lang.Thread.run(Thread.java:1583)
+
+"VoiceChatPacketProcessingThread@23436" tid=0x65 nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 waiting for Worker-Main-5@20519 to release lock on <0x67a6> (a com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState)
+	  at com.igrium.aivillagers.SpeechVCPlugin$VoiceWriterState.onPacket(SpeechVCPlugin.java:89)
+	  at com.igrium.aivillagers.SpeechVCPlugin.onMicrophonePacket(SpeechVCPlugin.java:149)
+	  at com.igrium.aivillagers.SpeechVCPlugin$$Lambda/0x00000239aac6f248.accept(Unknown Source:-1)
+	  at de.maxhenkel.voicechat.plugins.PluginManager.dispatchEvent(PluginManager.java:136)
+	  at de.maxhenkel.voicechat.plugins.PluginManager.onMicPacket(PluginManager.java:249)
+	  at de.maxhenkel.voicechat.voice.server.Server.onMicPacket(Server.java:339)
+	  at de.maxhenkel.voicechat.voice.server.Server$ProcessThread.run(Server.java:307)
+
+"JNA Cleaner@5049" tid=0x42 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	  at jdk.internal.misc.Unsafe.park(Unsafe.java:-1)
+	  at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+	  at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1852)
+	  at java.lang.ref.ReferenceQueue.await(ReferenceQueue.java:71)
+	  at java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:143)
+	  at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:218)
+	  at com.sun.jna.internal.Cleaner$CleanerThread.run(Cleaner.java:154)
+
+"Timer hack thread@17003" tid=0x44 nid=NA sleeping
+  java.lang.Thread.State: TIMED_WAITING
+	  at java.lang.Thread.sleep0(Thread.java:-1)
+	  at java.lang.Thread.sleep(Thread.java:509)
+	  at net.minecraft.util.Util$9.run(Util.java:1062)
+
+"Reference Handler@26529" tid=0x9 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	  at java.lang.ref.Reference.waitForReferencePendingList(Reference.java:-1)
+	  at java.lang.ref.Reference.processPendingReferences(Reference.java:246)
+	  at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:208)
+
+"Finalizer@26530" tid=0xa nid=NA waiting
+  java.lang.Thread.State: WAITING
+	  at java.lang.Object.wait0(Object.java:-1)
+	  at java.lang.Object.wait(Object.java:366)
+	  at java.lang.Object.wait(Object.java:339)
+	  at java.lang.ref.NativeReferenceQueue.await(NativeReferenceQueue.java:48)
+	  at java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:158)
+	  at java.lang.ref.NativeReferenceQueue.remove(NativeReferenceQueue.java:89)
+	  at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:173)
+
+"Signal Dispatcher@26531" tid=0xb nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+
+"Attach Listener@26532" tid=0xc nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+
+"Notification Thread@1194" tid=0x18 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+
+"DestroyJavaVM@21101" tid=0x51 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+

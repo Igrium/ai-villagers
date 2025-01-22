@@ -10,17 +10,13 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.entity.passive.VillagerEntity;
-import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 
@@ -29,9 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import com.igrium.aivillagers.subsystems.SubsystemTypes;
 import com.igrium.aivillagers.subsystems.impl.ChatListeningSubsystem;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 public class AIVillagers implements ModInitializer {
     public static final String MOD_ID = "ai-villagers";
@@ -104,5 +97,9 @@ public class AIVillagers implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(aiManager::tick);
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(errorSound);
+
+//        VoiceCaptureEvent.EVENT.register((plugin, player, data) -> {
+//            LOGGER.info("{} started talking.", player.getName().getString());
+//        });
     }
 }

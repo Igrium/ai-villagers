@@ -2,8 +2,10 @@ package com.igrium.aivillagers.speech
 
 import com.aallam.openai.api.audio.SpeechRequest
 import com.aallam.openai.api.audio.SpeechResponseFormat
+import com.aallam.openai.api.audio.TranscriptionRequest
 import com.aallam.openai.api.audio.Voice
 import com.aallam.openai.api.core.RequestOptions
+import com.aallam.openai.api.file.FileSource
 import com.aallam.openai.api.model.Model
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
@@ -40,5 +42,6 @@ class OpenAISpeechClient (
             responseFormat = SpeechResponseFormat("wav")
         )
         return openAI.speech(req);
+
     }
 }

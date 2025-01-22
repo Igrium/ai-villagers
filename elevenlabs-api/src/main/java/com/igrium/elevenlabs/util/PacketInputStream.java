@@ -24,12 +24,14 @@ public class PacketInputStream extends InputStream {
         this.notifyAll();
     }
 
-    public synchronized void addPacket(byte[] packet) {
+    public void addPacket(byte[] packet) {
         if (isEOF) {
             throw new IllegalStateException("Stream has been marked as EOF.");
         }
         queue.add(packet);
-        this.notifyAll();
+        synchronized (this) {
+            this.notifyAll();
+        }
     }
 
     @Override
