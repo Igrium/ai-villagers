@@ -76,6 +76,11 @@ public class ChatListeningSubsystem implements ListeningSubsystem {
         listeningEntities.remove(villager);
     }
 
+    @Override
+    public void onMicPacket(ServerPlayerEntity player, short[] data) {
+
+    }
+
     public static void onChatMessage(SignedMessage message, ServerPlayerEntity sender, Parameters params) {
         for (var instance : instances) {
             instance.messageCache.add(new CachedMessage(message.getContent().getString(), sender));

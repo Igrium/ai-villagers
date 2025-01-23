@@ -139,7 +139,7 @@ public abstract class Text2SpeechSubsystem implements SpeechSubsystem {
                 LOGGER.error("Simple VC was not setup properly; audio will not play.");
                 return;
             }
-            audioManager.playAudioFromEntity(villager, AudioUtils.concat(SpeechAudioManager.FORMAT, audioStreams));
+            audioManager.playAudioFromEntity(villager, AudioUtils.concat(AudioUtils.FORMAT, audioStreams));
         }
 
         @Override

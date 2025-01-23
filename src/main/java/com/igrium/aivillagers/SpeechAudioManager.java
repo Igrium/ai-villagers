@@ -15,6 +15,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import com.igrium.aivillagers.util.AudioUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ public class SpeechAudioManager implements Closeable {
     /**
      * The audio format that Simple Voice Chat likes.
      */
+    @Deprecated
     public static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000F, 16, 1, 2, 48000F, false);
 
     private final SpeechVCPlugin plugin;
@@ -150,7 +152,7 @@ public class SpeechAudioManager implements Closeable {
 
         StreamingAudioPlayer(AudioChannel channel, AudioInputStream audio) {
             LOGGER.info("Starting audio playback");
-            this.audio = AudioSystem.getAudioInputStream(FORMAT, audio);
+            this.audio = AudioSystem.getAudioInputStream(AudioUtils.FORMAT, audio);
             this.audioPlayer = getApi().createAudioPlayer(channel, getApi().createEncoder(), this::getFrame);
         }
 

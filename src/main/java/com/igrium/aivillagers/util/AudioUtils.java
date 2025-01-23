@@ -1,13 +1,20 @@
 package com.igrium.aivillagers.util;
 
+import de.maxhenkel.voicechat.api.VoicechatApi;
+import de.maxhenkel.voicechat.api.mp3.Mp3Encoder;
+
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.util.Enumeration;
 import java.util.Iterator;
 
 public final class AudioUtils {
+    public static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000F, 16, 1, 2, 48000F, false);
+
     /**
      * Concatenate a series of audio input streams.
      * @param format Format to convert the audio to.
@@ -34,6 +41,30 @@ public final class AudioUtils {
             } else {
                 return AudioSystem.getAudioInputStream(format, next);
             }
+        }
+    }
+
+    /**
+     * An Mp3Encoder that just encodes into PCM 16-bit 48khz
+     */
+    public static class PCMEncoder implements Mp3Encoder {
+
+        private final OutputStream out;
+        private final VoicechatApi api;
+
+        public PCMEncoder(OutputStream out, VoicechatApi api) {
+            this.out = out;
+            this.api = api;
+        }
+
+        @Override
+        public void encode(short[] samples) throws IOException {
+            out.write(api.getAudioConverter().shortsToBytes(samples));
+        }
+
+        @Override
+        public void close() throws IOException {
+            out.close();
         }
     }
 }
