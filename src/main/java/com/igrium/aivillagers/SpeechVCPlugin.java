@@ -2,6 +2,7 @@ package com.igrium.aivillagers;
 
 import com.igrium.aivillagers.util.AudioUtils;
 import com.igrium.aivillagers.voice.VoiceCapture;
+import com.igrium.aivillagers.voice.VoiceListener;
 import com.igrium.aivillagers.voice.VoiceWriter;
 import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.VoicechatConnection;
@@ -96,7 +97,7 @@ public class SpeechVCPlugin implements VoicechatPlugin {
 
     private void consumeDefaultMicStream(SpeechVCPlugin plugin, ServerPlayerEntity player, InputStream in) {
         AIVillagers.LOGGER.info("{} is talking.", player.getName().getString());
-        Path testFile = FabricLoader.getInstance().getGameDir().resolve("testaudio/" + testFileIndex.getAndIncrement() + ".pcm");
+        Path testFile = FabricLoader.getInstance().getGameDir().resolve("testaudio/" + testFileIndex.getAndIncrement() + ".mp3");
         try {
             Files.createDirectories(testFile.getParent());
             try(var out = new BufferedOutputStream(Files.newOutputStream(testFile))) {
@@ -109,68 +110,7 @@ public class SpeechVCPlugin implements VoicechatPlugin {
 
     }
 
-
-    private MicStreamConsumer micStreamConsumer = this::consumeDefaultMicStream;
-
-    public void setMicStreamConsumer(MicStreamConsumer micStreamConsumer) {
-        this.micStreamConsumer = micStreamConsumer;
-    }
-
-    private static final int MP3_BITRATE = 320;
-
-    private class VoiceWriterState {
-        VoiceCapture writer;
-
-        synchronized void onPacket(ServerPlayerEntity player, short[] packet) {
-            if (writer == null) {
-                var in = new PipedInputStream();
-                PipedOutputStream out;
-                try {
-                    out = new PipedOutputStream(in);
-                } catch (IOException e) {
-                    // Shouldn't ever happen
-                    throw new RuntimeException(e);
-                }
-//                Mp3Encoder encoder = api.createMp3Encoder(AudioUtils.FORMAT, MP3_BITRATE, 3, out);
-                Mp3Encoder encoder = new AudioUtils.PCMEncoder(out, api);
-                writer = new VoiceCapture(encoder, AudioUtils.FORMAT);
-//                writer = new VoiceWriter(encoder, 250);
-//                writer.setOnClose(this::onWriterClose);
-                AIVillagers.LOGGER.info("{} started talking.", player.getName().getString());
-                Util.getMainWorkerExecutor()
-                        .execute(() -> micStreamConsumer.onPlayerSpeaking(SpeechVCPlugin.this, player, in));
-
-            }
-            writer.addPacket(packet);
-        }
-
-        int tickNum = 0;
-
-        synchronized void tick() {
-            if (writer != null && tickNum % 2 == 0) {
-                try {
-                    if (System.currentTimeMillis() - writer.getLastAudioCaptured() > 350) {
-                        writer.flushAndClose();
-                        onWriterClose();
-                    } else {
-                        writer.flush();
-                    }
-
-                } catch (IOException e) {
-                    AIVillagers.LOGGER.error("Error processing voice data:", e);
-                    onWriterClose();
-                }
-            }
-            tickNum++;
-        }
-
-         void onWriterClose() {
-            this.writer = null;
-            AIVillagers.LOGGER.info("Player stopped talking");
-        }
-    }
-
-    private final Map<ServerPlayerEntity, VoiceWriterState> voiceWriters = Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<ServerPlayerEntity, VoiceListener> voiceListeners = Collections.synchronizedMap(new WeakHashMap<>());
 
     private void onMicrophonePacket(MicrophonePacketEvent event) {
         VoicechatConnection senderConnection = event.getSenderConnection();
@@ -186,29 +126,36 @@ public class SpeechVCPlugin implements VoicechatPlugin {
             decoder = event.getVoicechat().createDecoder();
         }
 
-//        AIVillagers.LOGGER.info("Received packet from player {}", player.getName().getString());
-//
-
         byte[] opus = event.getPacket().getOpusEncodedData();
         short[] decoded;
         if (opus.length != 0) {
             assert decoder != null;
-//            decoder.resetState();
+            // TODO: do we need one decoder per player?
             decoded = decoder.decode(event.getPacket().getOpusEncodedData());
         } else {
             decoded = new short[0];
         }
-//        short[] decoded = decoder.decode(event.getPacket().getOpusEncodedData());
         AIVillagers.getInstance().getAiManager().getListeningSubsystem().onMicPacket(player, decoded);
-        voiceWriters.computeIfAbsent(player, p -> new VoiceWriterState()).onPacket(player, decoded);
+
+        var listener = voiceListeners.computeIfAbsent(player, p -> new VoiceListener(api, 300,
+                in -> Util.getIoWorkerExecutor().execute(() -> {
+                    consumeDefaultMicStream(this, player, in);
+                })));
+
+        listener.consumeVoicePacket(decoded);
     }
 
+    int tickNum = 0;
     private void tick(MinecraftServer server) {
-        Util.getMainWorkerExecutor().execute(() -> {
-            for (var writer : voiceWriters.values()) {
-                writer.tick();
-            }
-        });
+        if (tickNum % 2 == 0) {
+            Util.getMainWorkerExecutor().execute(() -> {
+                for (var l : voiceListeners.values()) {
+                    l.tick();
+                }
+            });
+
+        }
+        tickNum++;
     }
 
     public VoicechatApi getApi() {
