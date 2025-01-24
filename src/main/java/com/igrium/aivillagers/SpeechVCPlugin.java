@@ -137,10 +137,9 @@ public class SpeechVCPlugin implements VoicechatPlugin {
         }
         AIVillagers.getInstance().getAiManager().getListeningSubsystem().onMicPacket(player, decoded);
 
-        var listener = voiceListeners.computeIfAbsent(player, p -> new VoiceListener(api, 300,
-                in -> Util.getIoWorkerExecutor().execute(() -> {
-                    consumeDefaultMicStream(this, player, in);
-                })));
+        var listener = voiceListeners.computeIfAbsent(player, p -> new VoiceListener(api, (in) -> {
+            consumeDefaultMicStream(this, player, in);
+        }));
 
         listener.consumeVoicePacket(decoded);
     }
