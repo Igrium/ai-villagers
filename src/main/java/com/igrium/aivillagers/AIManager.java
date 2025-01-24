@@ -1,11 +1,10 @@
 package com.igrium.aivillagers;
 
-import com.igrium.aivillagers.subsystems.AISubsystem;
-import com.igrium.aivillagers.subsystems.ListeningSubsystem;
-import com.igrium.aivillagers.subsystems.SpeechSubsystem;
-import com.igrium.aivillagers.subsystems.SubsystemTypes;
+import com.igrium.aivillagers.subsystems.*;
 
 import net.minecraft.server.MinecraftServer;
+
+import java.util.List;
 
 public class AIManager {
 
@@ -31,9 +30,22 @@ public class AIManager {
         speechSubsystem = SubsystemTypes.getSpeech(this, config.speech);
     }
 
+
     public void tick(MinecraftServer server) {
         listeningSubsystem.tick(server);
         aiSubsystem.tick(server);
         speechSubsystem.tick(server);
+    }
+
+    public void onServerStart(MinecraftServer server) {
+        listeningSubsystem.onServerStart(server);
+        aiSubsystem.onServerStart(server);
+        speechSubsystem.onServerStart(server);
+    }
+
+    public void onServerStop(MinecraftServer server) {
+        listeningSubsystem.onServerStop(server);
+        aiSubsystem.onServerStop(server);
+        speechSubsystem.onServerStop(server);
     }
 }

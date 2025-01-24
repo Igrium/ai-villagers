@@ -1,34 +1,16 @@
 package com.igrium.aivillagers;
 
-import com.igrium.aivillagers.util.AudioUtils;
-import com.igrium.aivillagers.voice.VoiceCapture;
-import com.igrium.aivillagers.voice.VoiceListener;
-import com.igrium.aivillagers.voice.VoiceWriter;
 import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.VoicechatConnection;
 import de.maxhenkel.voicechat.api.VoicechatPlugin;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
-import de.maxhenkel.voicechat.api.events.EventRegistration;
-import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
-import de.maxhenkel.voicechat.api.events.VoicechatServerStartedEvent;
-import de.maxhenkel.voicechat.api.events.VoicechatServerStoppedEvent;
-import de.maxhenkel.voicechat.api.mp3.Mp3Encoder;
+import de.maxhenkel.voicechat.api.events.*;
 import de.maxhenkel.voicechat.api.opus.OpusDecoder;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Util;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SpeechVCPlugin implements VoicechatPlugin {
 
@@ -45,18 +27,13 @@ public class SpeechVCPlugin implements VoicechatPlugin {
         return "ai-villagers";
     }
 
-    private VoicechatApi api;
     private VoicechatServerApi serverApi;
 
     private SpeechAudioManager audioManager;
 
-    @Nullable
-    private OpusDecoder decoder;
-
     @Override
     public void initialize(VoicechatApi api) {
         instance = this;
-        this.api = api;
     }
 
     @Override
@@ -64,7 +41,7 @@ public class SpeechVCPlugin implements VoicechatPlugin {
         registration.registerEvent(VoicechatServerStartedEvent.class, this::onServerStarted);
         registration.registerEvent(VoicechatServerStoppedEvent.class, this::onServerStopped);
         registration.registerEvent(MicrophonePacketEvent.class, this::onMicrophonePacket);
-        ServerTickEvents.START_SERVER_TICK.register(this::tick);
+        registration.registerEvent(PlayerDisconnectedEvent.class, this::onPlayerDisconnected);
     }
 
     private void onServerStarted(VoicechatServerStartedEvent event) {
@@ -78,39 +55,25 @@ public class SpeechVCPlugin implements VoicechatPlugin {
                 .build();
     }
 
+    private final Map<UUID, OpusDecoder> decoders = new ConcurrentHashMap<>();
+
     private void onServerStopped(VoicechatServerStoppedEvent event) {
         if (audioManager != null) {
             audioManager.close();
             audioManager = null;
         }
-    }
-
-    /**
-     * Represents a consumer that gets notified when a player starts streaming. Only one of these may exist at a time,
-     * and <b>it must consume the entire input stream or else the voice chat system will freeze.</b>
-     */
-    public interface MicStreamConsumer {
-        void onPlayerSpeaking(SpeechVCPlugin plugin, ServerPlayerEntity player, InputStream in);
-    }
-
-    final AtomicInteger testFileIndex = new AtomicInteger();
-
-    private void consumeDefaultMicStream(SpeechVCPlugin plugin, ServerPlayerEntity player, InputStream in) {
-        AIVillagers.LOGGER.info("{} is talking.", player.getName().getString());
-        Path testFile = FabricLoader.getInstance().getGameDir().resolve("testaudio/" + testFileIndex.getAndIncrement() + ".mp3");
-        try {
-            Files.createDirectories(testFile.getParent());
-            try(var out = new BufferedOutputStream(Files.newOutputStream(testFile))) {
-                in.transferTo(out);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        for (var decoder : decoders.values()) {
+            decoder.close();
         }
-        AIVillagers.LOGGER.info("Saved snippet to {}", testFile);
-
+        decoders.clear();
     }
 
-    private final Map<ServerPlayerEntity, VoiceListener> voiceListeners = Collections.synchronizedMap(new WeakHashMap<>());
+    private void onPlayerDisconnected(PlayerDisconnectedEvent event) {
+        var decoder = decoders.remove(event.getPlayerUuid());
+        if (decoder != null) {
+            decoder.close();
+        }
+    }
 
     private void onMicrophonePacket(MicrophonePacketEvent event) {
         VoicechatConnection senderConnection = event.getSenderConnection();
@@ -122,43 +85,19 @@ public class SpeechVCPlugin implements VoicechatPlugin {
             return;
         }
 
-        if (decoder == null) {
-            decoder = event.getVoicechat().createDecoder();
-        }
-
         byte[] opus = event.getPacket().getOpusEncodedData();
         short[] decoded;
         if (opus.length != 0) {
-            assert decoder != null;
-            // TODO: do we need one decoder per player?
+            var decoder = decoders.computeIfAbsent(player.getUuid(), p -> serverApi.createDecoder());
             decoded = decoder.decode(event.getPacket().getOpusEncodedData());
         } else {
             decoded = new short[0];
         }
-        AIVillagers.getInstance().getAiManager().getListeningSubsystem().onMicPacket(player, decoded);
-
-        var listener = voiceListeners.computeIfAbsent(player, p -> new VoiceListener(api, (in) -> {
-            consumeDefaultMicStream(this, player, in);
-        }));
-
-        listener.consumeVoicePacket(decoded);
+        AIVillagers.getInstance().getAiManager().getListeningSubsystem().onMicPacket(this, player, decoded);
     }
 
-    int tickNum = 0;
-    private void tick(MinecraftServer server) {
-        if (tickNum % 2 == 0) {
-            Util.getMainWorkerExecutor().execute(() -> {
-                for (var l : voiceListeners.values()) {
-                    l.tick();
-                }
-            });
-
-        }
-        tickNum++;
-    }
-
-    public VoicechatApi getApi() {
-        return api;
+    public VoicechatServerApi getApi() {
+        return serverApi;
     }
 
     public VoicechatServerApi getServerApi() {

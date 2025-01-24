@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import com.igrium.aivillagers.AIManager;
+import com.igrium.aivillagers.SpeechVCPlugin;
 import com.igrium.aivillagers.subsystems.ListeningSubsystem;
 import com.igrium.aivillagers.subsystems.SubsystemType;
 import com.igrium.aivillagers.util.PlayerUtils;
@@ -77,7 +78,7 @@ public class ChatListeningSubsystem implements ListeningSubsystem {
     }
 
     @Override
-    public void onMicPacket(ServerPlayerEntity player, short[] data) {
+    public void onMicPacket(SpeechVCPlugin plugin, ServerPlayerEntity player, short[] data) {
 
     }
 

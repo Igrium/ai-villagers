@@ -1,29 +1,24 @@
 package com.igrium.aivillagers;
 
-import java.io.*;
-import java.util.Arrays;
-import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.UnsupportedAudioFileException;
-
 import com.igrium.aivillagers.util.AudioUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import de.maxhenkel.voicechat.api.audiochannel.AudioChannel;
 import de.maxhenkel.voicechat.api.audiochannel.AudioPlayer;
 import de.maxhenkel.voicechat.api.audiochannel.LocationalAudioChannel;
 import net.minecraft.entity.Entity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import java.io.BufferedInputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * Handles audio processing for simple voice chat.

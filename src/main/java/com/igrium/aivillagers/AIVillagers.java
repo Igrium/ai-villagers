@@ -8,6 +8,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -63,7 +64,6 @@ public class AIVillagers implements ModInitializer {
         instance = this;
         SubsystemTypes.registerDefaults();
 
-//        config = AIVillagersConfig.load(FabricLoader.getInstance().getConfigDir().resolve("ai_villagers.json"));
         config = AIVillagersConfig.loadConfig();
         try {
             aiManager = new AIManager(config);
@@ -95,11 +95,9 @@ public class AIVillagers implements ModInitializer {
         });
 
         ServerTickEvents.END_SERVER_TICK.register(aiManager::tick);
+        ServerLifecycleEvents.SERVER_STARTING.register(aiManager::onServerStart);
+        ServerLifecycleEvents.SERVER_STOPPING.register(aiManager::onServerStop);
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(errorSound);
-
-//        VoiceCaptureEvent.EVENT.register((plugin, player, data) -> {
-//            LOGGER.info("{} started talking.", player.getName().getString());
-//        });
     }
 }

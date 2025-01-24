@@ -35,6 +35,7 @@ public class SubsystemTypes {
 
     public static void registerDefaults() {
         LISTENING_REGISTRY.put("chat", ChatListeningSubsystem.TYPE);
+        LISTENING_REGISTRY.put("whisper", WhisperListeningSubsystem.TYPE);
 
         AI_REGISTRY.put("dummy", DummyAISubsystem.TYPE);
         AI_REGISTRY.put("gpt", GptAISubsystem.TYPE);
