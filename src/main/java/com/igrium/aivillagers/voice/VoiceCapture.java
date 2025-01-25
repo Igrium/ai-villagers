@@ -3,11 +3,9 @@ package com.igrium.aivillagers.voice;
 import de.maxhenkel.voicechat.api.mp3.Mp3Encoder;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortList;
-import it.unimi.dsi.fastutil.shorts.ShortLists;
 
 import javax.sound.sampled.AudioFormat;
 import java.io.IOException;
-import java.nio.ShortBuffer;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -90,7 +88,7 @@ public class VoiceCapture {
         AudioSegment segment;
         while ((segment = segments.poll()) != null) {
             // Silence
-            if (lastEncodedTimestamp > 0) {
+            if (lastEncodedTimestamp > 0 && lastEncodedTimestamp < segment.timestamp) {
                 int silenceMs = (int) (segment.timestamp - lastEncodedTimestamp);
                 short[] silence = new short[msToSamples(silenceMs)];
                 encoder.encode(silence);

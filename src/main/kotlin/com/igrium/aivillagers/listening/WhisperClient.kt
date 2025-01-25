@@ -12,17 +12,13 @@ import com.mojang.datafixers.util.Either
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.future
 import net.minecraft.server.network.ServerPlayerEntity
-import okio.Buffer
-import okio.Okio
 import okio.Pipe
 import okio.buffer
 import org.slf4j.LoggerFactory
 import java.io.OutputStream
 import java.util.*
-import java.util.concurrent.Future
 import java.util.function.BiConsumer
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -31,7 +27,7 @@ class WhisperClient(
     /**
      * The OpenAI API key.
      */
-    private val apiKey: String,
+    apiKey: String,
 
     /**
      * A callback for when a player has finished talking and their voice has processed.
@@ -86,13 +82,13 @@ class WhisperClient(
     private fun handleResults(player: ServerPlayerEntity, results: List<Either<String, Throwable>>) {
         val builder = StringBuilder()
         for (res in results) {
-            res.ifLeft() {
+            res.ifLeft {
                 builder.append(it)
                 builder.append(" ")
             }
-            res.ifRight() { logger.error("Whisper error: ", it) }
+            res.ifRight { logger.error("Whisper error: ", it) }
         }
-        logger.info("Received text from {}: {}", player.name.string, builder.toString())
+        onProcessSpeech(player, builder.toString())
     }
 
 }
