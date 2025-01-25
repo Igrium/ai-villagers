@@ -7,16 +7,14 @@ import net.minecraft.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
+import java.io.*;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
- * Detects when a player starts talking and creates an input stream with the data.
+ * Detects when a player starts talking and outputs data to an outputstream.
  */
 public class VoiceListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(VoiceListener.class);
@@ -25,8 +23,8 @@ public class VoiceListener {
     private final VoicechatApi api;
     private final int maxSilenceMs;
 
-    private final Consumer<InputStream> onVoiceCapture;
-    private final Executor voiceCaptureExecutor;
+//    private final Consumer<InputStream> onVoiceCapture;
+    private final Supplier<OutputStream> onVoiceCapture;
 
 
     /**
@@ -34,32 +32,21 @@ public class VoiceListener {
      *
      * @param api                  Simple voice chat API instance.
      * @param onVoiceCapture       Called when a player starts talking with am mp3-encoded input stream of their audio.
-     * @param voiceCaptureExecutor The executor on which to call <code>onVoiceCapture</code>
      * @param maxSilenceMs         The amount of milliseconds of silence before phrase is considered complete.
      */
-    public VoiceListener(VoicechatApi api, Consumer<InputStream> onVoiceCapture, Executor voiceCaptureExecutor, int maxSilenceMs) {
+    public VoiceListener(VoicechatApi api, Supplier<OutputStream> onVoiceCapture, int maxSilenceMs) {
         this.api = api;
         this.maxSilenceMs = maxSilenceMs;
         this.onVoiceCapture = onVoiceCapture;
-        this.voiceCaptureExecutor = voiceCaptureExecutor;
     }
 
 
     public synchronized void consumeVoicePacket(short[] packet) {
         if (writer == null) {
-            var in = new PipedInputStream();
-            PipedOutputStream out;
-            try {
-                out = new PipedOutputStream(in);
-            } catch (IOException e) {
-                // Shouldn't ever happen
-                throw new RuntimeException(e);
-            }
-
-            Mp3Encoder encoder = api.createMp3Encoder(AudioUtils.FORMAT, 320, 5, out);
+            Mp3Encoder encoder = api.createMp3Encoder(AudioUtils.FORMAT, 320, 5, onVoiceCapture.get());
             writer = new VoiceCapture(encoder, AudioUtils.FORMAT);
 
-            voiceCaptureExecutor.execute(() ->  onVoiceCapture.accept(in));
+//            voiceCaptureExecutor.execute(() ->  onVoiceCapture.accept(in));
         }
         writer.addPacket(packet);
     }
@@ -88,11 +75,10 @@ public class VoiceListener {
 
     public static class Builder {
         private VoicechatApi api;
-        private Consumer<InputStream> onVoiceCapture;
-        private Executor voiceCaptureExecutor = Util.getMainWorkerExecutor();
+        private Supplier<OutputStream> onVoiceCapture;
         private int maxSilenceMs = 350;
 
-        public Builder(VoicechatApi api, Consumer<InputStream> onVoiceCapture) {
+        public Builder(VoicechatApi api, Supplier<OutputStream> onVoiceCapture) {
             this.api = api;
             this.onVoiceCapture = onVoiceCapture;
         }
@@ -102,13 +88,8 @@ public class VoiceListener {
             return this;
         }
 
-        public Builder setOnVoiceCapture(Consumer<InputStream> onVoiceCapture) {
+        public Builder setOnVoiceCapture(Supplier<OutputStream> onVoiceCapture) {
             this.onVoiceCapture = Objects.requireNonNull(onVoiceCapture);
-            return this;
-        }
-
-        public Builder setVoiceCaptureExecutor(Executor voiceCaptureExecutor) {
-            this.voiceCaptureExecutor = Objects.requireNonNull(voiceCaptureExecutor);
             return this;
         }
 
@@ -118,7 +99,7 @@ public class VoiceListener {
         }
 
         public VoiceListener build() {
-            return new VoiceListener(api, onVoiceCapture, voiceCaptureExecutor, maxSilenceMs);
+            return new VoiceListener(api, onVoiceCapture, maxSilenceMs);
         }
     }
 }

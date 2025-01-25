@@ -79,7 +79,7 @@ public class VoiceCapture {
         segments.add(new AudioSegment(data, startTime));
     }
 
-    private long lastEncodedTimestamp = -1;
+    private volatile long lastEncodedTimestamp = -1;
 
     /**
      * Write all the cached audio data into the encoder.
