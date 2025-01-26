@@ -58,16 +58,15 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
     @Override
     public void onMicPacket(SpeechVCPlugin plugin, ServerPlayerEntity player, short[] data) {
         var listener = voiceListeners.computeIfAbsent(player, p ->
-                new VoiceListener.Builder(plugin.getApi(), () -> onStartedTalking(p))
-                        .setEncoderFactory(WhisperListeningSubsystem::debugThresholdEncoder)
+                new VoiceListener.Builder(plugin.getApi(), api -> onStartedTalking(api, p))
                         .build());
 
         listener.consumeVoicePacket(data);
     }
 
-    protected OutputStream onStartedTalking(ServerPlayerEntity player) {
+    protected Mp3Encoder onStartedTalking(VoicechatApi api, ServerPlayerEntity player) {
         AIVillagers.LOGGER.info("{} is talking.", player.getName().getString());
-        return whisperClient.handleVoiceCapture(player);
+        return debugThresholdEncoder(api, () -> whisperClient.handleVoiceCapture(player));
     }
 
     protected void onProcessSpeech(ServerPlayerEntity player, String message) {
@@ -78,6 +77,7 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
 
     @Override
     public void tick(MinecraftServer server) {
+
         if (tickNum % 2 == 0) {
             Util.getMainWorkerExecutor().execute(() -> {
                 for (var l : voiceListeners.values()) {
@@ -89,7 +89,7 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
     }
 
 
-    private static Mp3Encoder debugThresholdEncoder(VoicechatApi api, Supplier<OutputStream> out) {
+    private Mp3Encoder debugThresholdEncoder(VoicechatApi api, Supplier<OutputStream> out) {
         return new GatedEncoder(() -> AudioUtils.createGenericMp3Encoder(api, out.get()), (buffer, sum) -> {
             double rms = Math.sqrt((double) sum / buffer.size());
             LOGGER.info("Average RMS: {}", rms);
