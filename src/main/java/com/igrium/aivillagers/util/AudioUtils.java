@@ -67,4 +67,15 @@ public final class AudioUtils {
             out.close();
         }
     }
+
+    /**
+     * Create an MP3 encoder suitable for sending data to speech-to-text services.
+     *
+     * @param api Voice chat API instance.
+     * @param out Output stream to write to.
+     * @return The encoder.
+     */
+    public static Mp3Encoder createGenericMp3Encoder(VoicechatApi api, OutputStream out) {
+        return api.createMp3Encoder(FORMAT, 320, 6, out);
+    }
 }

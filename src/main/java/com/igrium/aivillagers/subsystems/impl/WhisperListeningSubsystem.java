@@ -6,22 +6,30 @@ import com.igrium.aivillagers.SpeechVCPlugin;
 import com.igrium.aivillagers.listening.WhisperClient;
 import com.igrium.aivillagers.subsystems.ListeningSubsystem;
 import com.igrium.aivillagers.subsystems.SubsystemType;
+import com.igrium.aivillagers.util.AudioUtils;
+import com.igrium.aivillagers.voice.GatedEncoder;
 import com.igrium.aivillagers.voice.VoiceListener;
+import de.maxhenkel.voicechat.api.VoicechatApi;
+import de.maxhenkel.voicechat.api.mp3.Mp3Encoder;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Util;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.function.Supplier;
 
 /**
  * A listening subsystem that calls into OpenAI's Whisper.
  */
 public class WhisperListeningSubsystem implements ListeningSubsystem {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WhisperListeningSubsystem.class);
 
     public static final SubsystemType<WhisperListeningSubsystem> TYPE = SubsystemType.create(WhisperListeningSubsystem::new, WhisperConfig.class);
 
@@ -50,7 +58,9 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
     @Override
     public void onMicPacket(SpeechVCPlugin plugin, ServerPlayerEntity player, short[] data) {
         var listener = voiceListeners.computeIfAbsent(player, p ->
-                new VoiceListener.Builder(plugin.getApi(), () -> onStartedTalking(p)).build());
+                new VoiceListener.Builder(plugin.getApi(), () -> onStartedTalking(p))
+                        .setEncoderFactory(WhisperListeningSubsystem::debugThresholdEncoder)
+                        .build());
 
         listener.consumeVoicePacket(data);
     }
@@ -78,4 +88,12 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
         tickNum++;
     }
 
+
+    private static Mp3Encoder debugThresholdEncoder(VoicechatApi api, Supplier<OutputStream> out) {
+        return new GatedEncoder(() -> AudioUtils.createGenericMp3Encoder(api, out.get()), (buffer, sum) -> {
+            double rms = Math.sqrt((double) sum / buffer.size());
+            LOGGER.info("Average RMS: {}", rms);
+            return rms > 100;
+        });
+    }
 }
