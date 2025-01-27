@@ -7,6 +7,7 @@ import com.igrium.aivillagers.listening.WhisperClient;
 import com.igrium.aivillagers.subsystems.ListeningSubsystem;
 import com.igrium.aivillagers.subsystems.SubsystemType;
 import com.igrium.aivillagers.util.AudioUtils;
+import com.igrium.aivillagers.voice.CallbackEncoder;
 import com.igrium.aivillagers.voice.GatedEncoder;
 import com.igrium.aivillagers.voice.VoiceListener;
 import de.maxhenkel.voicechat.api.VoicechatApi;
@@ -66,7 +67,8 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
 
     protected Mp3Encoder onStartedTalking(VoicechatApi api, ServerPlayerEntity player) {
         AIVillagers.LOGGER.info("{} is talking.", player.getName().getString());
-        return debugThresholdEncoder(api, () -> whisperClient.handleVoiceCapture(player));
+        return cancelingThresholdEncoder(api, whisperClient.handleVoiceCapture(player));
+//        return debugThresholdEncoder(api, () -> whisperClient.handleVoiceCapture(player).getStream());
     }
 
     protected void onProcessSpeech(ServerPlayerEntity player, String message) {
@@ -94,6 +96,18 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
             double rms = Math.sqrt((double) sum / buffer.size());
             LOGGER.info("Average RMS: {}", rms);
             return rms > 100;
+        });
+    }
+
+    private Mp3Encoder cancelingThresholdEncoder(VoicechatApi api, WhisperClient.RequestHandle handle) {
+        handle.setUseResult(false);
+        int threshold = 100;
+        return new CallbackEncoder(AudioUtils.createGenericMp3Encoder(api, handle.getStream()), (samples, buffer, sum) -> {
+            if (handle.getUseResult()) return;
+            if (sum / buffer.size() > threshold * threshold) {
+                LOGGER.info("Encoder hit threshold!");
+                handle.setUseResult(true);
+            }
         });
     }
 }

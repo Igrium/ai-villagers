@@ -35,6 +35,8 @@ class WhisperClient(
     private val onProcessSpeech: (player: ServerPlayerEntity, speech: String) -> Unit
 ) {
 
+    data class RequestHandle(val stream: OutputStream, @Volatile var useResult: Boolean = true)
+
     constructor(apiKey: String, onProcessSpeech: BiConsumer<ServerPlayerEntity, String>) :
             this(apiKey, { p, s -> onProcessSpeech.accept(p, s) })
 
@@ -51,9 +53,9 @@ class WhisperClient(
     private val futures = Collections.synchronizedMap(WeakHashMap<ServerPlayerEntity, FutureList<String>>())
 
     /**
-     * Call when a voice listener returns an input stream with data.
+     * Called when a player has started talking.
      */
-    fun handleVoiceCapture(player: ServerPlayerEntity): OutputStream {
+    fun handleVoiceCapture(player: ServerPlayerEntity): RequestHandle {
 
         val pipe = Pipe(65536) // 2 ^ 15
         val req = TranscriptionRequest(
@@ -66,16 +68,24 @@ class WhisperClient(
             }
         }
 
+        val handle = RequestHandle(pipe.sink.buffer().outputStream(), false)
+
         fList.submit(scope.future {
             try {
-                openAI.transcription(req).text
+                val res = openAI.transcription(req).text
+                if (!handle.useResult) {
+                    logger.warn("Future was canceled.")
+                    return@future ""
+                } else {
+                    return@future res
+                }
             } catch (e: Exception) {
                 logger.error("Error receiving text from openai:", e)
                 return@future ""
             }
         })
 
-        return pipe.sink.buffer().outputStream()
+        return handle
     }
 
 
