@@ -7,6 +7,7 @@ import com.igrium.aivillagers.listening.WhisperClient;
 import com.igrium.aivillagers.subsystems.ListeningSubsystem;
 import com.igrium.aivillagers.subsystems.SubsystemType;
 import com.igrium.aivillagers.util.AudioUtils;
+import com.igrium.aivillagers.util.FutureList;
 import com.igrium.aivillagers.voice.CallbackEncoder;
 import com.igrium.aivillagers.voice.GatedEncoder;
 import com.igrium.aivillagers.voice.VoiceListener;
@@ -16,6 +17,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Util;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,13 +67,47 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
         listener.consumeVoicePacket(data);
     }
 
+    private final Map<ServerPlayerEntity, FutureList<String>> futures = Collections.synchronizedMap(new WeakHashMap<>());
+
     protected Mp3Encoder onStartedTalking(VoicechatApi api, ServerPlayerEntity player) {
+        var writer = whisperClient.sendTranscriptionRequest();
+
+        var futureList = futures.computeIfAbsent(player, p -> new FutureList<>(list -> {
+            // Collect all segments and form into string
+            StringBuilder builder = new StringBuilder();
+            for (var e : list) {
+                if (e.left().isPresent() && !e.left().get().isBlank()) {
+                    builder.append(e.left().get()).append(' ');
+                }
+                if (e.right().isPresent()) {
+                    LOGGER.error("Error receiving text data from OpenAI:", e.right().get());
+                }
+            }
+            onProcessSpeech(p, builder.toString());
+        }));
+
         AIVillagers.LOGGER.info("{} is talking.", player.getName().getString());
-        return cancelingThresholdEncoder(api, whisperClient.handleVoiceCapture(player));
-//        return debugThresholdEncoder(api, () -> whisperClient.handleVoiceCapture(player).getStream());
+
+        MutableBoolean shouldCancel = new MutableBoolean(true);
+        int threshold = 100;
+
+        // Every mic packet, we check that the RMS is above the threshold and permit future to complete.
+        Mp3Encoder encoder = new CallbackEncoder(AudioUtils.createGenericMp3Encoder(api, writer.getOutput()), (samples, buffer, sum) -> {
+            if (shouldCancel.isFalse()) return;
+            if (sum / buffer.size() > threshold * threshold) {
+                shouldCancel.setFalse();
+            }
+        });
+
+        // If we never passed the RMS threshold, drop the response when it comes back.
+        futureList.submit(writer.getFuture().thenApplyAsync(res -> shouldCancel.isTrue() ? "" : res));
+
+        return encoder;
     }
 
+
     protected void onProcessSpeech(ServerPlayerEntity player, String message) {
+        if (message.isBlank()) return;
         LoggerFactory.getLogger(getClass()).info("{}: {}", player.getName().getString(), message);
     }
 

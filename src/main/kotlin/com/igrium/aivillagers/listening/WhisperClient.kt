@@ -15,10 +15,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.future
 import net.minecraft.server.network.ServerPlayerEntity
 import okio.Pipe
+import okio.Sink
 import okio.buffer
 import org.slf4j.LoggerFactory
 import java.io.OutputStream
 import java.util.*
+import java.util.concurrent.CompletableFuture
 import java.util.function.BiConsumer
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -37,6 +39,8 @@ class WhisperClient(
 
     data class RequestHandle(val stream: OutputStream, @Volatile var useResult: Boolean = true)
 
+    data class RequestWriter(val output: OutputStream, val future: CompletableFuture<String>)
+
     constructor(apiKey: String, onProcessSpeech: BiConsumer<ServerPlayerEntity, String>) :
             this(apiKey, { p, s -> onProcessSpeech.accept(p, s) })
 
@@ -50,55 +54,14 @@ class WhisperClient(
 
     private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("OpenAI Interface"))
 
-    private val futures = Collections.synchronizedMap(WeakHashMap<ServerPlayerEntity, FutureList<String>>())
 
-    /**
-     * Called when a player has started talking.
-     */
-    fun handleVoiceCapture(player: ServerPlayerEntity): RequestHandle {
-
+    fun sendTranscriptionRequest(): RequestWriter {
         val pipe = Pipe(65536) // 2 ^ 15
         val req = TranscriptionRequest(
             audio = FileSource("mic.mp3", pipe.source),
             model = ModelId("whisper-1")
         )
-        val fList = futures.computeIfAbsent(player) {
-            FutureList {
-                handleResults(player, it)
-            }
-        }
 
-        val handle = RequestHandle(pipe.sink.buffer().outputStream(), false)
-
-        fList.submit(scope.future {
-            try {
-                val res = openAI.transcription(req).text
-                if (!handle.useResult) {
-                    logger.warn("Future was canceled.")
-                    return@future ""
-                } else {
-                    return@future res
-                }
-            } catch (e: Exception) {
-                logger.error("Error receiving text from openai:", e)
-                return@future ""
-            }
-        })
-
-        return handle
+        return RequestWriter(pipe.sink.buffer().outputStream(), scope.future { openAI.transcription(req).text })
     }
-
-
-    private fun handleResults(player: ServerPlayerEntity, results: List<Either<String, Throwable>>) {
-        val builder = StringBuilder()
-        for (res in results) {
-            res.ifLeft {
-                builder.append(it)
-                builder.append(" ")
-            }
-            res.ifRight { logger.error("Whisper error: ", it) }
-        }
-        onProcessSpeech(player, builder.toString())
-    }
-
 }
