@@ -1,7 +1,7 @@
 package com.igrium.aivillagers.cmd;
 
 import com.aallam.openai.api.chat.ChatMessage;
-import com.igrium.aivillagers.chat.ChatHistoryComponent;
+import com.igrium.aivillagers.listening.ChatHistoryComponent;
 import com.igrium.aivillagers.gpt.ChatMessages;
 import com.igrium.aivillagers.util.VillagerCounterComponent;
 import com.mojang.brigadier.CommandDispatcher;

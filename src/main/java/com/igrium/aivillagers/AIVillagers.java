@@ -1,6 +1,6 @@
 package com.igrium.aivillagers;
 
-import com.igrium.aivillagers.chat.PromptManager;
+import com.igrium.aivillagers.gpt.PromptManager;
 import com.igrium.aivillagers.cmd.AICommand;
 import com.igrium.aivillagers.util.ErrorSound;
 import com.igrium.aivillagers.util.VillagerCounterComponent;

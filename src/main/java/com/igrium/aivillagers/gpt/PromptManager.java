@@ -1,8 +1,9 @@
-package com.igrium.aivillagers.chat;
+package com.igrium.aivillagers.gpt;
 
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
 import com.igrium.aivillagers.AIVillagers;
+import com.igrium.aivillagers.listening.ChatHistoryComponent;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.registry.Registries;
 import net.minecraft.resource.ResourceManager;

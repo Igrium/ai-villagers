@@ -1,15 +1,15 @@
-package com.igrium.aivillagers.chat
+package com.igrium.aivillagers.gpt
 
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.core.Role
-import com.igrium.aivillagers.chat.PromptManager.ProfessionPrompt
+import com.igrium.aivillagers.listening.ChatHistoryComponent
+import com.igrium.aivillagers.gpt.PromptManager.ProfessionPrompt
 import com.igrium.aivillagers.util.SimpleTemplate
 import com.igrium.aivillagers.util.VillagerUtils
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.passive.VillagerEntity
 import net.minecraft.util.Language
 import net.minecraft.village.VillagerProfession
-import org.stringtemplate.v4.ST
 import java.util.concurrent.ConcurrentHashMap
 
 /**

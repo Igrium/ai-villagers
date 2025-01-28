@@ -4,7 +4,7 @@ import com.igrium.aivillagers.util.VillagerCounterComponent;
 import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
 import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
 
-import com.igrium.aivillagers.chat.ChatHistoryComponent;
+import com.igrium.aivillagers.listening.ChatHistoryComponent;
 
 import net.minecraft.entity.passive.MerchantEntity;
 import org.ladysnake.cca.api.v3.level.LevelComponentFactoryRegistry;

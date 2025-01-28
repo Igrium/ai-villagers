@@ -3,7 +3,7 @@ package com.igrium.aivillagers.gpt;
 import com.aallam.openai.api.chat.ChatMessage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.igrium.aivillagers.chat.ChatHistoryComponent;
+import com.igrium.aivillagers.listening.ChatHistoryComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.item.Item;

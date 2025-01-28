@@ -3,13 +3,14 @@ package com.igrium.aivillagers.subsystems.impl;
 import com.igrium.aivillagers.AIManager;
 import com.igrium.aivillagers.AIVillagers;
 import com.igrium.aivillagers.SpeechVCPlugin;
+import com.igrium.aivillagers.listening.ConversationTracker;
+import com.igrium.aivillagers.listening.PlayerIntentTracker;
 import com.igrium.aivillagers.listening.WhisperClient;
 import com.igrium.aivillagers.subsystems.ListeningSubsystem;
 import com.igrium.aivillagers.subsystems.SubsystemType;
 import com.igrium.aivillagers.util.AudioUtils;
 import com.igrium.aivillagers.util.FutureList;
 import com.igrium.aivillagers.voice.CallbackEncoder;
-import com.igrium.aivillagers.voice.GatedEncoder;
 import com.igrium.aivillagers.voice.VoiceListener;
 import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.mp3.Mp3Encoder;
@@ -21,11 +22,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.OutputStream;
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.function.Supplier;
+import java.util.*;
 
 /**
  * A listening subsystem that calls into OpenAI's Whisper.
@@ -40,9 +37,11 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
         public String apiKey;
     }
 
+    private final AIManager aiManager;
     private final WhisperClient whisperClient;
 
     public WhisperListeningSubsystem(AIManager aiManager, WhisperConfig config) {
+        this.aiManager = aiManager;
         whisperClient = new WhisperClient(config.apiKey, this::onProcessSpeech);
     }
 
@@ -67,12 +66,22 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
         listener.consumeVoicePacket(data);
     }
 
-    private final Map<ServerPlayerEntity, FutureList<String>> futures = Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<ServerPlayerEntity, FutureList<String>> futureLists = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /**
+     * <b>Only access player trackers on the server thread!!</b>
+     */
+    private final Map<ServerPlayerEntity, ConversationTracker> convoTrackers = new WeakHashMap<>();
 
     protected Mp3Encoder onStartedTalking(VoicechatApi api, ServerPlayerEntity player) {
         var writer = whisperClient.sendTranscriptionRequest();
 
-        var futureList = futures.computeIfAbsent(player, p -> new FutureList<>(list -> {
+        // Create a new intent tracker if we don't already have one.
+        Objects.requireNonNull(player.getServer()).execute(() -> {
+            convoTrackers.computeIfAbsent(player, ConversationTracker::new).startTalking(false);
+        });
+
+        var futureList = futureLists.computeIfAbsent(player, p -> new FutureList<>(list -> {
             // Collect all segments and form into string
             StringBuilder builder = new StringBuilder();
             for (var e : list) {
@@ -105,10 +114,41 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
         return encoder;
     }
 
-
+    /**
+     * Called when the queue of transcription jobs is emptied for a player,
+     * and they all have been merged into a single message.
+     *
+     * @param player  The player in question.
+     * @param message The combined message from the player.
+     */
     protected void onProcessSpeech(ServerPlayerEntity player, String message) {
         if (message.isBlank()) return;
-        LoggerFactory.getLogger(getClass()).info("{}: {}", player.getName().getString(), message);
+        LOGGER.info("{}: {}", player.getName().getString(), message);
+
+        // Intent tracker should only be accessed on the server thread
+        Objects.requireNonNull(player.getServer()).execute(() -> {
+            ConversationTracker tracker = convoTrackers.get(player);
+            if (tracker == null) {
+                LOGGER.warn("Player didn't have a conversation tracker when onProcessSpeech was called!");
+                return;
+            }
+
+            Entity target = tracker.stopTalking();
+            if (target == null) {
+                LOGGER.warn("Player didn't have likely speech target");
+                return;
+            }
+
+            aiManager.getAiSubsystem().onSpokenTo(target, player, message);
+        });
+
+//        HitResult target = PlayerUtils.findCrosshairTarget(player, 6, 6);
+//        if (target instanceof EntityHitResult entHit) {
+//            Entity ent = entHit.getEntity();
+//            if (ent instanceof VillagerEntity) {
+//                aiManager.getAiSubsystem().onSpokenTo(ent, player, message);
+//            }
+//        }
     }
 
     private int tickNum = 0;
@@ -124,26 +164,10 @@ public class WhisperListeningSubsystem implements ListeningSubsystem {
             });
         }
         tickNum++;
+
+        for (var tracker : convoTrackers.values()) {
+            tracker.tick();
+        }
     }
 
-
-    private Mp3Encoder debugThresholdEncoder(VoicechatApi api, Supplier<OutputStream> out) {
-        return new GatedEncoder(() -> AudioUtils.createGenericMp3Encoder(api, out.get()), (buffer, sum) -> {
-            double rms = Math.sqrt((double) sum / buffer.size());
-            LOGGER.info("Average RMS: {}", rms);
-            return rms > 100;
-        });
-    }
-
-    private Mp3Encoder cancelingThresholdEncoder(VoicechatApi api, WhisperClient.RequestHandle handle) {
-        handle.setUseResult(false);
-        int threshold = 100;
-        return new CallbackEncoder(AudioUtils.createGenericMp3Encoder(api, handle.getStream()), (samples, buffer, sum) -> {
-            if (handle.getUseResult()) return;
-            if (sum / buffer.size() > threshold * threshold) {
-                LOGGER.info("Encoder hit threshold!");
-                handle.setUseResult(true);
-            }
-        });
-    }
 }

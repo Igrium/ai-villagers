@@ -1,9 +1,10 @@
-package com.igrium.aivillagers.chat;
+package com.igrium.aivillagers.listening;
 
 import java.util.*;
 
 import com.aallam.openai.api.chat.ChatMessage;
 import com.igrium.aivillagers.gpt.ChatMessages;
+import com.igrium.aivillagers.gpt.PromptManager;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.village.VillagerProfession;
